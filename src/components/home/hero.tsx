@@ -7,6 +7,8 @@ import { LiveAppScreen } from '@/components/ui/preferences';
 import { homeCopy } from '@/content/home';
 import { media } from '@/content/media';
 
+import { PhoneMockup } from './phone-mockup';
+
 import styles from './home.module.css';
 
 export function Hero() {
@@ -58,21 +60,23 @@ export function Hero() {
 
         <div className={styles.productStage} aria-label={copy.previewLabel}>
           <div className={styles.stageOrbit} aria-hidden="true" />
-          <figure className={styles.primaryCapture}>
-            <div className={styles.captureBar}>
-              <span><i /><i /><i /></span>
-              <b>{copy.captureBar.title}</b>
-              <em><span /> {copy.captureBar.status}</em>
-            </div>
+          <PhoneMockup
+            variant="android"
+            className={styles.primaryCapture}
+            platform={copy.devices.android.platform}
+            caption={<LocalizedText en={copy.devices.android.caption.en} ar={copy.devices.android.caption.ar} />}
+          >
             <div className={styles.liveCapture}><LiveAppScreen eager /></div>
-            <figcaption>
-              <span><LocalizedText en={copy.discoverCaption.en} ar={copy.discoverCaption.ar} /></span>
-              <small><LocalizedText en={copy.realCaptureCaption.en} ar={copy.realCaptureCaption.ar} /></small>
-            </figcaption>
-          </figure>
+          </PhoneMockup>
 
-          <figure className={styles.secondaryCapture}>
+          <PhoneMockup
+            variant="iphone"
+            className={styles.secondaryCapture}
+            platform={copy.devices.iphone.platform}
+            caption={<LocalizedText en={copy.devices.iphone.caption.en} ar={copy.devices.iphone.caption.ar} />}
+          >
             <Image
+              className={styles.phoneImage}
               src={detailsScreen.src}
               alt={`${detailsScreen.alt.en} — ${detailsScreen.alt.ar}`}
               width={detailsScreen.width}
@@ -80,8 +84,7 @@ export function Hero() {
               priority
               unoptimized
             />
-            <figcaption><LocalizedText en={copy.detailsCaption.en} ar={copy.detailsCaption.ar} /></figcaption>
-          </figure>
+          </PhoneMockup>
 
           <Link className={styles.tutorialCard} href="/tutorials/getting-started">
             <span className={styles.tutorialIcon}><BookIcon /></span>

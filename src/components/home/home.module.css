@@ -204,75 +204,253 @@
 .stageOrbit::before { inset: 8% -4%; transform: rotate(14deg); }
 .stageOrbit::after { inset: 18% 7%; transform: rotate(-17deg); }
 
-.primaryCapture,
-.secondaryCapture {
+.phoneMockup {
   position: absolute;
   margin: 0;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
-  background: #08090d;
-  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.42);
+  overflow: visible;
 }
 
 .primaryCapture {
   top: 0;
   left: 50%;
   z-index: 3;
-  width: min(18.25rem, 48%);
   height: 100%;
-  border-radius: 1.4rem;
+  aspect-ratio: 9.25 / 19.6;
   transform: translateX(-55%) rotate(-1.6deg);
 }
 
-.captureBar {
-  height: 2.25rem;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 0 0.65rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: #12141b;
-  color: #8e94a2;
-  font-size: 0.45rem;
-  font-style: normal;
-  letter-spacing: 0.11em;
-}
-
-.captureBar > span { display: flex; gap: 0.25rem; }
-.captureBar > span i { width: 0.32rem; height: 0.32rem; border-radius: 50%; background: #343846; }
-.captureBar b { font-weight: 600; }
-.captureBar em { display: flex; align-items: center; justify-self: end; gap: 0.25rem; color: #ff7181; font-style: normal; }
-.captureBar em span { width: 0.3rem; height: 0.3rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 0.6rem currentColor; }
-
-.liveCapture { height: calc(100% - 4.6rem); overflow: hidden; background: #000; }
-.liveCapture :global(.liveAppScreen) { background-position: center top; }
-
-.primaryCapture figcaption {
-  height: 2.35rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.75rem;
-  background: #12141b;
-  color: #f5f6f8;
-  font-size: 0.62rem;
-  font-weight: 600;
-}
-
-.primaryCapture figcaption small { color: #8e94a2; font-size: 0.48rem; font-weight: 400; }
-
 .secondaryCapture {
   top: 10%;
-  inset-inline-end: 0;
+  inset-inline-end: -0.15rem;
   z-index: 2;
-  width: min(13.2rem, 36%);
   height: 76%;
-  border-radius: 1.15rem;
+  aspect-ratio: 9.25 / 19.6;
   transform: rotate(5deg);
 }
 
-.secondaryCapture img { width: 100%; height: calc(100% - 2.2rem); display: block; object-fit: cover; object-position: center top; }
-.secondaryCapture figcaption { height: 2.2rem; display: grid; place-items: center; background: #151720; color: #aeb3be; font-size: 0.52rem; font-weight: 600; }
+.phoneDevice {
+  position: absolute;
+  inset: 0;
+  border-radius: 2.75rem;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.7), transparent 8% 43%, rgba(255, 255, 255, 0.16) 49%, transparent 56%),
+    linear-gradient(145deg, #656a74 0%, #181a20 13%, #050507 56%, #31343c 91%, #777b83 100%);
+  box-shadow:
+    -0.45rem 0.35rem 1.2rem rgba(255, 255, 255, 0.08),
+    0 2.2rem 5.2rem rgba(0, 0, 0, 0.52),
+    0 0.6rem 1.4rem rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 0 0.28rem #090a0d;
+  isolation: isolate;
+  animation: phoneFloat 6.5s ease-in-out infinite;
+}
+
+.secondaryCapture .phoneDevice { animation-name: phoneFloatReverse; animation-delay: -2s; animation-duration: 7.25s; }
+
+.phoneDevice::before,
+.phoneDevice::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.phoneDevice::before {
+  inset: 0.22rem;
+  z-index: 4;
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.78);
+}
+
+.phoneDevice::after {
+  top: 8%;
+  bottom: 8%;
+  left: 0.12rem;
+  z-index: 5;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.58) 18% 72%, transparent);
+  opacity: 0.65;
+}
+
+.phoneScreen {
+  position: absolute;
+  inset: 0.48rem;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: 2.25rem;
+  background: #050608;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.95),
+    inset 0 0 0.35rem rgba(0, 0, 0, 0.8);
+}
+
+.phoneScreen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: linear-gradient(112deg, rgba(255, 255, 255, 0.08), transparent 18% 74%, rgba(255, 255, 255, 0.035));
+  box-shadow: inset 0 0 1.25rem rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.androidDevice { border-radius: 2.55rem; }
+.androidDevice .phoneScreen { border-radius: 2.08rem; }
+
+.iphoneDevice {
+  border-radius: 2.95rem;
+  background:
+    linear-gradient(108deg, rgba(255, 255, 255, 0.84), transparent 7% 47%, rgba(255, 255, 255, 0.2) 52%, transparent 59%),
+    linear-gradient(145deg, #9da1aa 0%, #373941 12%, #0a0a0c 48%, #3f424a 89%, #a7aab0 100%);
+  box-shadow:
+    -0.4rem 0.35rem 1.2rem rgba(255, 255, 255, 0.11),
+    0 2rem 4.8rem rgba(0, 0, 0, 0.52),
+    0 0.6rem 1.4rem rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+    inset 0 0 0 0.25rem #0a0a0d;
+}
+
+.iphoneDevice .phoneScreen { inset: 0.44rem; border-radius: 2.52rem; }
+
+.deviceButton {
+  position: absolute;
+  z-index: 7;
+  width: 0.18rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.12rem;
+  background: linear-gradient(90deg, #0b0c10, #676b75 52%, #17191f);
+  box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.5);
+}
+
+.androidDevice .buttonUpper { top: 23%; left: -0.13rem; height: 4.2rem; }
+.androidDevice .buttonMiddle,
+.androidDevice .buttonLower { display: none; }
+.androidDevice .buttonSide { top: 30%; right: -0.13rem; height: 3.2rem; }
+
+.iphoneDevice .buttonUpper { top: 16%; left: -0.14rem; height: 1.3rem; }
+.iphoneDevice .buttonMiddle { top: 23%; left: -0.14rem; height: 2.75rem; }
+.iphoneDevice .buttonLower { top: 33%; left: -0.14rem; height: 2.75rem; }
+.iphoneDevice .buttonSide { top: 27%; right: -0.14rem; height: 4.5rem; }
+
+.speakerSlot,
+.cameraPunch,
+.dynamicIsland,
+.gestureBar,
+.homeIndicator {
+  position: absolute;
+  z-index: 8;
+}
+
+.speakerSlot {
+  top: 0.28rem;
+  left: 50%;
+  width: 1.35rem;
+  height: 0.1rem;
+  border-radius: 999px;
+  background: #090a0c;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.09);
+  transform: translateX(-50%);
+}
+
+.cameraPunch {
+  top: 0.83rem;
+  left: 50%;
+  width: 0.56rem;
+  height: 0.56rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #020306;
+  box-shadow: 0 0 0 1px #171a21, 0 0.16rem 0.35rem rgba(0, 0, 0, 0.65);
+  transform: translateX(-50%);
+}
+
+.cameraPunch i,
+.dynamicIsland i {
+  width: 0.18rem;
+  height: 0.18rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #627397, #121b33 48%, #030408 72%);
+  box-shadow: inset 0 0 0 1px rgba(115, 135, 184, 0.38);
+}
+
+.gestureBar,
+.homeIndicator {
+  bottom: 0.72rem;
+  left: 50%;
+  width: 4.1rem;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: rgba(243, 245, 249, 0.82);
+  box-shadow: 0 1px 0.2rem rgba(0, 0, 0, 0.45);
+  transform: translateX(-50%);
+}
+
+.dynamicIsland {
+  top: 0.76rem;
+  left: 50%;
+  width: 4.15rem;
+  height: 1.18rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  border-radius: 999px;
+  background: #010103;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025), 0 0.2rem 0.5rem rgba(0, 0, 0, 0.52);
+  transform: translateX(-50%);
+}
+
+.homeIndicator { bottom: 0.66rem; width: 4.5rem; background: rgba(255, 255, 255, 0.88); }
+
+.liveCapture,
+.phoneImage {
+  width: 100%;
+  height: 100%;
+}
+
+.liveCapture { overflow: hidden; background: #000; }
+.liveCapture :global(.liveAppScreen) { background-position: center top; }
+.phoneImage { display: block; object-fit: cover; object-position: center top; }
+
+.deviceCaption {
+  position: absolute;
+  z-index: 10;
+  min-width: 8.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.62rem 0.72rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.78rem;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: 0 0.8rem 2rem var(--shadow);
+  color: var(--muted-light);
+  font-size: 0.47rem;
+  line-height: 1.35;
+  backdrop-filter: blur(1rem) saturate(135%);
+}
+
+.deviceCaption strong {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text);
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+}
+
+.deviceCaption strong i {
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 50%;
+  background: #55d69e;
+  box-shadow: 0 0 0.55rem #55d69e;
+}
+
+.primaryCapture .deviceCaption { top: 17%; inset-inline-start: -4rem; }
+.secondaryCapture .deviceCaption { inset-inline-end: -2rem; bottom: 9%; }
 
 .tutorialCard {
   position: absolute;
@@ -697,8 +875,16 @@
 .finalIndex i { width: 2.5rem; height: 1px; background: currentColor; }
 :global(html[dir="rtl"]) .finalIndex { right: auto; left: 1.5rem; }
 
-:global(html[data-theme="light"]) .primaryCapture,
-:global(html[data-theme="light"]) .secondaryCapture,
+:global(html[data-theme="light"]) .phoneDevice {
+  box-shadow:
+    -0.35rem 0.3rem 1rem rgba(255, 255, 255, 0.42),
+    0 2rem 4.5rem rgba(28, 32, 42, 0.24),
+    0 0.5rem 1.2rem rgba(28, 32, 42, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    inset 0 0 0 0.28rem #090a0d;
+}
+
+:global(html[data-theme="light"]) .deviceCaption,
 :global(html[data-theme="light"]) .appPanel { box-shadow: 0 1.8rem 4rem rgba(28, 32, 42, 0.18); }
 
 :global(html[dir="rtl"]) .primaryAction svg,
@@ -725,6 +911,16 @@
 @keyframes markFloat {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -0.55rem; }
+}
+
+@keyframes phoneFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -0.42rem; }
+}
+
+@keyframes phoneFloatReverse {
+  0%, 100% { translate: 0 -0.12rem; }
+  50% { translate: 0 0.38rem; }
 }
 
 @media (max-width: 72rem) {
@@ -764,8 +960,6 @@
   .heroCopy h1 { max-width: 11ch; font-size: clamp(3.6rem, 10vw, 5.8rem); }
   :global(html[data-lang="ar"]) .heroCopy h1 { max-width: 12ch; font-size: clamp(3.2rem, 9vw, 5.3rem); }
   .productStage { width: min(100%, 37rem); height: 35rem; min-height: 0; margin-inline: auto; }
-  .primaryCapture { width: 17rem; }
-  .secondaryCapture { width: 12.5rem; }
   .tutorialCard { inset-inline-start: 0; }
   .scrollCue { display: none; }
   .sectionHeading { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -789,8 +983,9 @@
   .heroProof { justify-content: space-between; }
   .heroProof > span { white-space: normal; }
   .productStage { height: 30rem; }
-  .primaryCapture { left: 43%; width: min(15rem, 62vw); transform: translateX(-50%) rotate(-1.6deg); }
-  .secondaryCapture { top: 12%; width: min(10.5rem, 42vw); height: 70%; }
+  .primaryCapture { left: 43%; transform: translateX(-50%) rotate(-1.6deg); }
+  .secondaryCapture { top: 12%; height: 70%; }
+  .deviceCaption { display: none; }
   .tutorialCard { bottom: 1rem; width: 14.5rem; }
   .realBadge { display: none; }
   .featureSection,
@@ -834,8 +1029,6 @@
 @media (max-width: 24rem) {
   .heroProof { display: none; }
   .productStage { height: 27rem; }
-  .primaryCapture { width: 13.5rem; }
   .tutorialCard { inset-inline-start: -0.3rem; width: 13.4rem; }
   .tutorialCard strong { font-size: 0.61rem; }
-  .secondaryCapture { width: 9rem; }
 }

@@ -36,7 +36,7 @@ for (const [page, markers] of Object.entries(pageMarkers)) {
 }
 
 const home = await readFile(path.join(output, 'index.html'), 'utf8');
-for (const marker of ['All your manga.', 'None of the noise.', 'REAL BUILD', 'كل المانجا', 'manga-details.jpg', '/tutorials/']) {
+for (const marker of ['All your manga.', 'None of the noise.', 'ANDROID + iPHONE', 'REAL BUILD', 'كل المانجا', 'manga-details.jpg', '/tutorials/']) {
   if (!home.includes(marker)) throw new Error(`Homepage is missing product marker: ${marker}`);
 }
 
