@@ -1,22 +1,14 @@
+import type { AppScreenKey } from '@/content/media';
+import type { LocalizedCopy } from '@/content/types';
+
 export type TutorialCategory = 'basics' | 'discovery' | 'reading' | 'settings';
-
-export interface LocalizedCopy {
-  en: string;
-  ar: string;
-}
-
-export interface TutorialMedia {
-  kind: 'live' | 'image';
-  src?: string;
-  alt: string;
-}
 
 export interface TutorialStep {
   id: string;
   title: LocalizedCopy;
   body: LocalizedCopy;
   tip?: LocalizedCopy;
-  media?: TutorialMedia;
+  media?: AppScreenKey;
 }
 
 export interface Tutorial {
@@ -27,7 +19,7 @@ export interface Tutorial {
   intro: LocalizedCopy;
   duration: LocalizedCopy;
   level: LocalizedCopy;
-  cover: TutorialMedia;
+  cover: AppScreenKey;
   steps: TutorialStep[];
 }
 
@@ -38,6 +30,64 @@ export const tutorialCategoryLabels: Record<'all' | TutorialCategory, LocalizedC
   reading: { en: 'Reading', ar: 'القراءة' },
   settings: { en: 'Settings', ar: 'الإعدادات' },
 };
+
+export const tutorialsPageCopy = {
+  metadata: {
+    title: 'Tutorials',
+    description: 'Short visual guides for setting up Kira, finding manga, reading offline, and personalizing the app.',
+  },
+  hero: {
+    eyebrow: { en: 'KIRA HELP CENTER', ar: 'مركز مساعدة كيرا' },
+    title: {
+      lead: { en: 'Learn Kira,', ar: 'تعلّم كيرا،' },
+      accent: { en: 'one chapter at a time.', ar: 'فصلًا بعد فصل.' },
+    },
+    description: {
+      en: 'Short, visual answers built around the real app—from first setup to offline reading.',
+      ar: 'إجابات قصيرة وبصرية مبنية على التطبيق الحقيقي—من الإعداد الأول إلى القراءة دون إنترنت.',
+    },
+    browseCta: { en: 'Browse tutorials', ar: 'تصفّح الشروحات' },
+    supportCta: { en: 'Get support', ar: 'احصل على دعم' },
+    proof: [
+      { en: 'Real app captures', ar: 'لقطات حقيقية' },
+      { en: 'Arabic and English', ar: 'العربية والإنجليزية' },
+      { en: 'Practical steps only', ar: 'خطوات عملية فقط' },
+    ],
+  },
+  library: {
+    sectionLabel: { en: 'GUIDE LIBRARY', ar: 'مكتبة الشروحات' },
+    title: { en: 'Find the answer, then keep reading.', ar: 'اعثر على الإجابة ثم أكمل القراءة.' },
+    searchLabel: { en: 'Search tutorials', ar: 'ابحث في الشروحات' },
+    searchPlaceholder: { en: 'Search tutorials…', ar: 'ابحث في الشروحات…' },
+    categoriesLabel: { en: 'Tutorial categories', ar: 'تصنيفات الشروحات' },
+    count: {
+      en: { one: 'guide', many: 'guides' },
+      ar: { one: 'شرح', many: 'شروحات' },
+    },
+    openGuide: { en: 'Open guide', ar: 'افتح الشرح' },
+    emptyTitle: { en: 'No guide matches that search.', ar: 'لا يوجد شرح يطابق هذا البحث.' },
+    emptyDescription: { en: 'Try a shorter phrase or choose All guides.', ar: 'جرّب عبارة أقصر أو اختر «كل الشروحات».' },
+    clearFilters: { en: 'Clear filters', ar: 'امسح الفلاتر' },
+  },
+  article: {
+    tutorialLibraryLabel: 'Tutorial library',
+    allTutorials: { en: 'All tutorials', ar: 'كل الشروحات' },
+    quickGuides: { en: 'QUICK GUIDES', ar: 'أدلة سريعة' },
+    stillNeedHelp: { en: 'Still need help?', ar: 'ما زلت تحتاج مساعدة؟' },
+    openSupport: { en: 'Open support', ar: 'افتح الدعم' },
+    breadcrumbLabel: 'Breadcrumb',
+    tutorials: { en: 'Tutorials', ar: 'الشروحات' },
+    mediaTitle: 'KIRA / REAL APP',
+    mediaStatus: 'LIVE CAPTURE',
+    mediaCaption: { en: 'Captured from Kira’s installed Android build', ar: 'لقطة من نسخة أندرويد المثبّتة لكيرا' },
+    inThisGuide: { en: 'IN THIS GUIDE', ar: 'في هذا الشرح' },
+    stepPrefix: { en: 'STEP', ar: 'الخطوة' },
+    tipLabel: { en: 'Good to know', ar: 'معلومة مفيدة' },
+    continueLearning: { en: 'CONTINUE LEARNING', ar: 'أكمل التعلّم' },
+    onThisPageLabel: 'On this page',
+    readSuffix: { en: 'read', ar: 'قراءة' },
+  },
+} as const;
 
 export const tutorials: Tutorial[] = [
   {
@@ -54,7 +104,7 @@ export const tutorials: Tutorial[] = [
     },
     duration: { en: '4 min', ar: '٤ دقائق' },
     level: { en: 'Beginner', ar: 'مبتدئ' },
-    cover: { kind: 'live', alt: 'The real Kira Discover screen' },
+    cover: 'discover',
     steps: [
       {
         id: 'activate',
@@ -83,7 +133,7 @@ export const tutorials: Tutorial[] = [
           en: 'Use the source pills near the top of Discover, then browse Popular now and Latest updates. The search icon takes you directly to a title search.',
           ar: 'استخدم أزرار المصادر أعلى شاشة «اكتشف»، ثم تصفّح «الشائع الآن» و«آخر التحديثات». ينقلك رمز البحث مباشرةً إلى البحث عن عنوان.',
         },
-        media: { kind: 'live', alt: 'The real Kira Discover screen with source controls' },
+        media: 'discover',
       },
       {
         id: 'first-chapter',
@@ -92,7 +142,7 @@ export const tutorials: Tutorial[] = [
           en: 'Open a result, add it to your library, and choose a chapter. When reading state exists, the details screen offers a Resume action so you can return quickly.',
           ar: 'افتح نتيجة، وأضفها إلى مكتبتك، ثم اختر فصلًا. عند وجود تقدّم قراءة ستجد زر المتابعة في شاشة التفاصيل لتعود سريعًا.',
         },
-        media: { kind: 'image', src: '/screens/manga-details.jpg', alt: 'The real Kira manga details screen' },
+        media: 'mangaDetails',
       },
     ],
   },
@@ -110,7 +160,7 @@ export const tutorials: Tutorial[] = [
     },
     duration: { en: '3 min', ar: '٣ دقائق' },
     level: { en: 'Beginner', ar: 'مبتدئ' },
-    cover: { kind: 'live', alt: 'The real Kira Discover screen' },
+    cover: 'discover',
     steps: [
       {
         id: 'switch-source',
@@ -119,7 +169,7 @@ export const tutorials: Tutorial[] = [
           en: 'Tap a source pill at the top of Discover. Popular titles and latest updates refresh for the selected source.',
           ar: 'اضغط على زر مصدر أعلى «اكتشف». ستتحدّث العناوين الشائعة وآخر التحديثات للمصدر المحدد.',
         },
-        media: { kind: 'live', alt: 'Source pills on the real Kira Discover screen' },
+        media: 'discover',
       },
       {
         id: 'search',
@@ -144,7 +194,7 @@ export const tutorials: Tutorial[] = [
           en: 'Open the details screen and add the title to your library. Kira can then keep its chapter state and reading progress together.',
           ar: 'افتح شاشة التفاصيل وأضف العنوان إلى مكتبتك. يستطيع كيرا بعدها الاحتفاظ بحالة الفصول وتقدّم القراءة معًا.',
         },
-        media: { kind: 'image', src: '/screens/manga-details.jpg', alt: 'A title saved in the real Kira details screen' },
+        media: 'mangaDetails',
       },
     ],
   },
@@ -162,7 +212,7 @@ export const tutorials: Tutorial[] = [
     },
     duration: { en: '4 min', ar: '٤ دقائق' },
     level: { en: 'Beginner', ar: 'مبتدئ' },
-    cover: { kind: 'image', src: '/screens/manga-details.jpg', alt: 'Download controls on the real Kira manga details screen' },
+    cover: 'mangaDetails',
     steps: [
       {
         id: 'open-details',
@@ -171,7 +221,7 @@ export const tutorials: Tutorial[] = [
           en: 'Choose a title from Discover or your library. The details screen collects its chapter list, reading state, and download controls.',
           ar: 'اختر عنوانًا من «اكتشف» أو من مكتبتك. تجمع شاشة التفاصيل قائمة الفصول وحالة القراءة وأدوات التنزيل.',
         },
-        media: { kind: 'image', src: '/screens/manga-details.jpg', alt: 'The real manga details screen in Kira' },
+        media: 'mangaDetails',
       },
       {
         id: 'download',
@@ -200,7 +250,7 @@ export const tutorials: Tutorial[] = [
           en: 'Settings includes a Downloaded only filter and Kira Compressor controls. Compression can reduce chapter size, while converting existing downloads may take time.',
           ar: 'تتضمن الإعدادات فلتر «المنزّل فقط» وأدوات ضغط كيرا. قد يقلل الضغط حجم الفصول، بينما قد يستغرق تحويل التنزيلات الحالية وقتًا.',
         },
-        media: { kind: 'image', src: '/screens/settings-dark.jpg', alt: 'Real Kira storage and compressor settings' },
+        media: 'settings',
       },
     ],
   },
@@ -218,7 +268,7 @@ export const tutorials: Tutorial[] = [
     },
     duration: { en: '3 min', ar: '٣ دقائق' },
     level: { en: 'All readers', ar: 'كل القراء' },
-    cover: { kind: 'image', src: '/screens/settings-dark.jpg', alt: 'The real Kira Settings screen' },
+    cover: 'settings',
     steps: [
       {
         id: 'theme',
@@ -227,7 +277,7 @@ export const tutorials: Tutorial[] = [
           en: 'In Settings, use System Theme to follow the device or Custom Theme to choose directly. Pure black dark mode is available for an even darker reading environment.',
           ar: 'في الإعدادات، استخدم «مظهر النظام» لمتابعة الجهاز أو «مظهر مخصص» للاختيار مباشرةً. يتوفر أيضًا الوضع الداكن الأسود الخالص.',
         },
-        media: { kind: 'image', src: '/screens/settings-dark.jpg', alt: 'Theme controls in the real Kira Settings screen' },
+        media: 'settings',
       },
       {
         id: 'language',

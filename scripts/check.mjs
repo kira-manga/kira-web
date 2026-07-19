@@ -18,6 +18,23 @@ for (const page of requiredPages) {
   }
 }
 
+const pageMarkers = {
+  'activate/index.html': ['Official Kira activation', 'How source activation works'],
+  'guide/index.html': ['Start with your library', 'Protect your library'],
+  'support/index.html': ['Downloads or pages fail', 'Report a problem'],
+  'privacy/index.html': ['What Kira stores on your device', 'Firebase services'],
+  'terms/index.html': ['Third-party sources and content', 'Disclaimers and liability'],
+  'takedown/index.html': ['Information to include', 'Review and response'],
+  'data-deletion/index.html': ['Delete local app data', 'Firebase diagnostics and analytics'],
+};
+
+for (const [page, markers] of Object.entries(pageMarkers)) {
+  const html = await readFile(path.join(output, page), 'utf8');
+  for (const marker of markers) {
+    if (!html.includes(marker)) throw new Error(`${page} is missing document marker: ${marker}`);
+  }
+}
+
 const home = await readFile(path.join(output, 'index.html'), 'utf8');
 for (const marker of ['All your manga.', 'None of the noise.', 'REAL BUILD', 'كل المانجا', 'manga-details.jpg', '/tutorials/']) {
   if (!home.includes(marker)) throw new Error(`Homepage is missing product marker: ${marker}`);
@@ -29,16 +46,16 @@ for (const marker of ['Learn Kira', 'Search tutorials', 'تعلّم كيرا', '
 }
 
 for (const asset of [
-  'brand/kira-logo.svg',
-  'fonts/gellix-regular.ttf',
-  'fonts/gellix-semibold.ttf',
-  'fonts/gellix-bold.ttf',
-  'screens/discover-en-dark.jpg',
-  'screens/discover-en-light.jpg',
-  'screens/discover-ar-dark.jpg',
-  'screens/discover-ar-light.jpg',
-  'screens/manga-details.jpg',
-  'screens/settings-dark.jpg',
+  'assets/brand/kira-logo.svg',
+  'assets/fonts/gellix-regular.ttf',
+  'assets/fonts/gellix-semibold.ttf',
+  'assets/fonts/gellix-bold.ttf',
+  'assets/app-screens/discover/discover-en-dark.jpg',
+  'assets/app-screens/discover/discover-en-light.jpg',
+  'assets/app-screens/discover/discover-ar-dark.jpg',
+  'assets/app-screens/discover/discover-ar-light.jpg',
+  'assets/app-screens/details/manga-details.jpg',
+  'assets/app-screens/settings/settings-dark.jpg',
 ]) {
   const details = await stat(path.join(output, asset));
   if (details.size > 160_000) throw new Error(`${asset} exceeds the 160 KB production asset budget`);
@@ -51,7 +68,7 @@ for (const asset of ['_headers', '_redirects', 'robots.txt', 'sitemap.xml', 'man
 
 const headers = await readFile(path.join(output, '_headers'), 'utf8');
 for (const header of ['Content-Security-Policy', 'X-Content-Type-Options', 'Permissions-Policy',
-  '/opengraph-image', '/screens/*', '/brand/*', '/fonts/*', 'image/png', 'application/manifest+json', 'application/xml']) {
+  '/opengraph-image', '/assets/*', 'image/png', 'application/manifest+json', 'application/xml']) {
   if (!headers.includes(header)) throw new Error(`_headers is missing ${header}`);
 }
 

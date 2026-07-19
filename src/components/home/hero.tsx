@@ -1,13 +1,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { ArrowIcon, BookIcon, PlayIcon } from '@/components/icons';
-import { LocalizedText } from '@/components/localized-text';
-import { LiveAppScreen } from '@/components/preferences';
+import { ArrowIcon, BookIcon, PlayIcon } from '@/components/ui/icons';
+import { LocalizedText } from '@/components/ui/localized-text';
+import { LiveAppScreen } from '@/components/ui/preferences';
+import { homeCopy } from '@/content/home';
+import { media } from '@/content/media';
 
 import styles from './home.module.css';
 
 export function Hero() {
+  const copy = homeCopy.hero;
+  const detailsScreen = media.appScreens.mangaDetails;
+
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.heroGlow} aria-hidden="true" />
@@ -17,85 +22,85 @@ export function Hero() {
         <div className={styles.heroCopy}>
           <p className={styles.releasePill}>
             <span className={styles.releaseDot} />
-            <LocalizedText en="A calmer way to read" ar="طريقة أهدأ للقراءة" />
+            <LocalizedText en={copy.badge.en} ar={copy.badge.ar} />
             <ArrowIcon />
           </p>
 
           <h1 id="hero-title">
             <LocalizedText
-              en={<>All your manga.<br /><span>None of the noise.</span></>}
-              ar={<>كل المانجا التي تحبها.<br /><span>بلا ضوضاء.</span></>}
+              en={<>{copy.title.lead.en}<br /><span>{copy.title.accent.en}</span></>}
+              ar={<>{copy.title.lead.ar}<br /><span>{copy.title.accent.ar}</span></>}
             />
           </h1>
 
           <p className={styles.heroIntro}>
             <LocalizedText
-              en="Discover series, keep a local library, download chapters, and read in your language—inside one focused app."
-              ar="اكتشف السلاسل، وابنِ مكتبتك، وحمّل الفصول، واقرأ بلغتك—داخل تطبيق واحد مصمم للتركيز."
+              en={copy.intro.en}
+              ar={copy.intro.ar}
             />
           </p>
 
           <div className={styles.heroActions}>
             <Link className={styles.primaryAction} href="/activate">
-              <LocalizedText en="Start with Kira" ar="ابدأ مع كيرا" /> <ArrowIcon />
+              <LocalizedText en={copy.primaryCta.en} ar={copy.primaryCta.ar} /> <ArrowIcon />
             </Link>
             <Link className={styles.secondaryAction} href="/tutorials">
-              <PlayIcon /> <LocalizedText en="Explore tutorials" ar="استكشف الشروحات" />
+              <PlayIcon /> <LocalizedText en={copy.secondaryCta.en} ar={copy.secondaryCta.ar} />
             </Link>
           </div>
 
-          <div className={styles.heroProof} aria-label="Kira product highlights">
-            <span><i>01</i><LocalizedText en="Real app screens" ar="شاشات حقيقية" /></span>
-            <span><i>02</i><LocalizedText en="Android & iOS" ar="أندرويد وiOS" /></span>
-            <span><i>03</i><LocalizedText en="English & Arabic" ar="العربية والإنجليزية" /></span>
+          <div className={styles.heroProof} aria-label={copy.proofLabel}>
+            {copy.proof.map((item, index) => (
+              <span key={item.en}><i>{String(index + 1).padStart(2, '0')}</i><LocalizedText en={item.en} ar={item.ar} /></span>
+            ))}
           </div>
         </div>
 
-        <div className={styles.productStage} aria-label="Real Kira app preview">
+        <div className={styles.productStage} aria-label={copy.previewLabel}>
           <div className={styles.stageOrbit} aria-hidden="true" />
           <figure className={styles.primaryCapture}>
             <div className={styles.captureBar}>
               <span><i /><i /><i /></span>
-              <b>KIRA / DISCOVER</b>
-              <em><span /> LIVE</em>
+              <b>{copy.captureBar.title}</b>
+              <em><span /> {copy.captureBar.status}</em>
             </div>
             <div className={styles.liveCapture}><LiveAppScreen eager /></div>
             <figcaption>
-              <span><LocalizedText en="Discover" ar="اكتشف" /></span>
-              <small><LocalizedText en="Actual app capture" ar="لقطة حقيقية من التطبيق" /></small>
+              <span><LocalizedText en={copy.discoverCaption.en} ar={copy.discoverCaption.ar} /></span>
+              <small><LocalizedText en={copy.realCaptureCaption.en} ar={copy.realCaptureCaption.ar} /></small>
             </figcaption>
           </figure>
 
           <figure className={styles.secondaryCapture}>
             <Image
-              src="/screens/manga-details.jpg"
-              alt="A real Kira manga details screen"
-              width={588}
-              height={1280}
+              src={detailsScreen.src}
+              alt={`${detailsScreen.alt.en} — ${detailsScreen.alt.ar}`}
+              width={detailsScreen.width}
+              height={detailsScreen.height}
               priority
               unoptimized
             />
-            <figcaption><LocalizedText en="Details & chapters" ar="التفاصيل والفصول" /></figcaption>
+            <figcaption><LocalizedText en={copy.detailsCaption.en} ar={copy.detailsCaption.ar} /></figcaption>
           </figure>
 
           <Link className={styles.tutorialCard} href="/tutorials/getting-started">
             <span className={styles.tutorialIcon}><BookIcon /></span>
             <span>
-              <small><LocalizedText en="QUICK START · 4 MIN" ar="بدء سريع · ٤ دقائق" /></small>
-              <strong><LocalizedText en="From setup to first chapter" ar="من الإعداد إلى أول فصل" /></strong>
+              <small><LocalizedText en={copy.tutorialKicker.en} ar={copy.tutorialKicker.ar} /></small>
+              <strong><LocalizedText en={copy.tutorialTitle.en} ar={copy.tutorialTitle.ar} /></strong>
             </span>
             <ArrowIcon />
           </Link>
 
           <div className={styles.realBadge}>
             <span />
-            <LocalizedText en="CURRENT ANDROID BUILD" ar="نسخة أندرويد الحالية" />
+            <LocalizedText en={copy.buildBadge.en} ar={copy.buildBadge.ar} />
           </div>
         </div>
       </div>
 
-      <a className={styles.scrollCue} href="#features" aria-label="Scroll to product features">
-        <span /><LocalizedText en="SCROLL TO EXPLORE" ar="مرّر للاستكشاف" />
+      <a className={styles.scrollCue} href="#features" aria-label={copy.scrollAriaLabel}>
+        <span /><LocalizedText en={copy.scrollLabel.en} ar={copy.scrollLabel.ar} />
       </a>
     </section>
   );

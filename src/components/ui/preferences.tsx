@@ -2,10 +2,10 @@
 
 import { useSyncExternalStore } from 'react';
 
-import { GlobeIcon, MoonIcon, SunIcon } from '@/components/icons';
-
-type Theme = 'dark' | 'light';
-type Language = 'en' | 'ar';
+import { GlobeIcon, MoonIcon, SunIcon } from '@/components/ui/icons';
+import { liveAppScreenSources } from '@/content/media';
+import { siteCopy } from '@/content/site';
+import type { Language, Theme } from '@/content/types';
 
 interface Preferences {
   theme: Theme;
@@ -29,7 +29,7 @@ function applyPreferences(next: Preferences) {
   root.dataset.lang = next.language;
   root.lang = next.language;
   root.dir = next.language === 'ar' ? 'rtl' : 'ltr';
-  root.style.setProperty('--live-app-screen', `url("${screenSources[`${next.language}-${next.theme}`]}")`);
+  root.style.setProperty('--live-app-screen', `url("${liveAppScreenSources[`${next.language}-${next.theme}`]}")`);
   localStorage.setItem('kira-theme', next.theme);
   localStorage.setItem('kira-language', next.language);
   window.dispatchEvent(new CustomEvent(preferenceEvent, { detail: next }));
@@ -66,7 +66,7 @@ export function PreferenceControls({ compact = false }: { compact?: boolean }) {
     <div className={compact ? 'preferenceControls preferenceControlsCompact' : 'preferenceControls'}>
       <button
         type="button"
-        aria-label={isDark ? 'Use light theme' : 'Use dark theme'}
+        aria-label={isDark ? siteCopy.preferences.useLightTheme : siteCopy.preferences.useDarkTheme}
         aria-pressed={isDark}
         onClick={() => update({ ...preferences, theme: isDark ? 'light' : 'dark' })}
       >
@@ -76,29 +76,22 @@ export function PreferenceControls({ compact = false }: { compact?: boolean }) {
       <button
         type="button"
         className="languageToggle"
-        aria-label={isArabic ? 'Switch to English' : 'التبديل إلى العربية'}
+        aria-label={isArabic ? siteCopy.preferences.switchToEnglish : siteCopy.preferences.switchToArabic}
         aria-pressed={isArabic}
         onClick={() => update({ ...preferences, language: isArabic ? 'en' : 'ar' })}
       >
-        <GlobeIcon /><span>{isArabic ? 'EN' : 'ع'}</span>
+        <GlobeIcon /><span>{isArabic ? siteCopy.preferences.languageToggle.english : siteCopy.preferences.languageToggle.arabic}</span>
       </button>
     </div>
   );
 }
-
-const screenSources: Record<`${Language}-${Theme}`, string> = {
-  'en-dark': '/screens/discover-en-dark.jpg',
-  'en-light': '/screens/discover-en-light.jpg',
-  'ar-dark': '/screens/discover-ar-dark.jpg',
-  'ar-light': '/screens/discover-ar-light.jpg',
-};
 
 export function LiveAppScreen({ eager = false }: { eager?: boolean }) {
   return (
     <span
       className={eager ? 'liveAppScreen liveAppScreenEager' : 'liveAppScreen'}
       role="img"
-      aria-label="Real Kira app Discover screen — شاشة اكتشف الحقيقية من تطبيق كيرا"
+      aria-label={siteCopy.preferences.liveScreenAlt}
     />
   );
 }

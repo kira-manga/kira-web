@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Gellix";
-  src: url("/fonts/gellix-regular.ttf") format("truetype");
+  src: url("/assets/fonts/gellix-regular.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
   font-weight: 400;
@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: "Gellix";
-  src: url("/fonts/gellix-semibold.ttf") format("truetype");
+  src: url("/assets/fonts/gellix-semibold.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
   font-weight: 600;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: "Gellix";
-  src: url("/fonts/gellix-bold.ttf") format("truetype");
+  src: url("/assets/fonts/gellix-bold.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
   font-weight: 700;
@@ -41,7 +41,7 @@
   --glass: rgba(24, 27, 36, 0.76);
   --shadow: rgba(0, 0, 0, 0.42);
   --hero-bg: #0c0d11;
-  --live-app-screen: url("/screens/discover-en-dark.jpg");
+  --live-app-screen: url("/assets/app-screens/discover/discover-en-dark.jpg");
   --shell: 82rem;
   --font-sans: "Gellix", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -670,6 +670,7 @@ html[dir="rtl"] .button svg {
   font-size: clamp(2.2rem, 3.7vw, 3.55rem);
   letter-spacing: -0.055em;
   line-height: 0.98;
+  white-space: pre-line;
 }
 
 .footerBrand p { margin: 1.25rem 0 0; color: var(--muted); }

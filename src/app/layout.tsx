@@ -1,31 +1,31 @@
 import type { Metadata, Viewport } from 'next';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
-import { SiteFooter } from '@/components/site-footer';
-import { SiteHeader } from '@/components/site-header';
-import { LocalizedText } from '@/components/localized-text';
+import { SiteFooter } from '@/components/layout/site-footer';
+import { SiteHeader } from '@/components/layout/site-header';
+import { LocalizedText } from '@/components/ui/localized-text';
+import { liveAppScreenSources } from '@/content/media';
+import { siteConfig, siteCopy } from '@/content/site';
 
 import './globals.css';
 
-const siteUrl = 'https://kiramanga.me';
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: { default: 'Kira Manga — Manga. Undisturbed.', template: '%s — Kira Manga' },
-  description: 'A focused manga reader for Android and iOS with local libraries, offline chapters, backups, and multilingual reading tools.',
-  applicationName: 'Kira Manga',
+  metadataBase: new URL(siteConfig.url),
+  title: { default: siteConfig.metadata.title, template: `%s — ${siteConfig.name}` },
+  description: siteConfig.metadata.description,
+  applicationName: siteConfig.name,
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    url: siteUrl,
-    siteName: 'Kira Manga',
-    title: 'Kira Manga — Manga. Undisturbed.',
-    description: 'Your library, offline chapters, backups, and multilingual reading tools in one focused manga reader.',
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    title: siteConfig.metadata.title,
+    description: siteConfig.metadata.openGraphDescription,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kira Manga — Manga. Undisturbed.',
-    description: 'A focused manga reader for Android and iOS.',
+    title: siteConfig.metadata.title,
+    description: siteConfig.metadata.shortDescription,
   },
   robots: { index: true, follow: true },
 };
@@ -33,11 +33,12 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0e1014',
+  themeColor: siteConfig.themeColor,
   colorScheme: 'dark light',
 };
 
 const preferenceScript = `(() => { try {
+  const screenSources = ${JSON.stringify(liveAppScreenSources)};
   const params = new URLSearchParams(location.search);
   const requestedTheme = params.get('theme');
   const requestedLanguage = params.get('lang');
@@ -56,16 +57,23 @@ const preferenceScript = `(() => { try {
   root.dataset.lang = language;
   root.lang = language;
   root.dir = language === 'ar' ? 'rtl' : 'ltr';
-  root.style.setProperty('--live-app-screen', 'url("/screens/discover-' + language + '-' + theme + '.jpg")');
+  root.style.setProperty('--live-app-screen', 'url("' + screenSources[language + '-' + theme] + '")');
 } catch (_) {}}
 )();`;
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" dir="ltr" data-theme="dark" data-lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      dir="ltr"
+      data-theme="dark"
+      data-lang="en"
+      style={{ '--live-app-screen': `url("${liveAppScreenSources['en-dark']}")` } as CSSProperties}
+      suppressHydrationWarning
+    >
       <head><script dangerouslySetInnerHTML={{ __html: preferenceScript }} /></head>
       <body>
-        <a className="skipLink" href="#main-content"><LocalizedText en="Skip to content" ar="انتقل إلى المحتوى" /></a>
+        <a className="skipLink" href="#main-content"><LocalizedText en={siteCopy.skipLink.en} ar={siteCopy.skipLink.ar} /></a>
         <SiteHeader />
         <main id="main-content">{children}</main>
         <SiteFooter />

@@ -1,7 +1,7 @@
 import { FeatureGrid } from '@/components/home/feature-grid';
 import { FinalCta } from '@/components/home/final-cta';
 import { Hero } from '@/components/home/hero';
-import { HowItWorks } from '@/components/home/how-it-works';
+import { TutorialPreview } from '@/components/home/tutorial-preview';
 import { ReaderShowcase } from '@/components/home/reader-showcase';
 
 export default function HomePage() {
@@ -10,7 +10,7 @@ export default function HomePage() {
       <Hero />
       <FeatureGrid />
       <ReaderShowcase />
-      <HowItWorks />
+      <TutorialPreview />
       <FinalCta />
     </div>
   );

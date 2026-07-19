@@ -3,10 +3,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { ArrowIcon, BookIcon, CheckIcon } from '@/components/icons';
-import { LocalizedText } from '@/components/localized-text';
-import { LiveAppScreen } from '@/components/preferences';
-import { getTutorial, tutorialCategoryLabels, tutorials, type TutorialMedia } from '@/content/tutorials';
+import { ArrowIcon, BookIcon, CheckIcon } from '@/components/ui/icons';
+import { LocalizedText } from '@/components/ui/localized-text';
+import { LiveAppScreen } from '@/components/ui/preferences';
+import { media, type AppScreenKey } from '@/content/media';
+import { getTutorial, tutorialCategoryLabels, tutorials, tutorialsPageCopy } from '@/content/tutorials';
 
 import styles from '@/components/tutorials/tutorials.module.css';
 
@@ -30,22 +31,25 @@ export async function generateMetadata({ params }: TutorialPageProps): Promise<M
   };
 }
 
-function TutorialMediaFrame({ media, compact = false }: { media: TutorialMedia; compact?: boolean }) {
+function TutorialMediaFrame({ screen, compact = false }: { screen: AppScreenKey; compact?: boolean }) {
+  const copy = tutorialsPageCopy.article;
+  const asset = media.appScreens[screen];
+
   return (
     <figure className={compact ? `${styles.tutorialMedia} ${styles.compactMedia}` : styles.tutorialMedia}>
       <div className={styles.mediaBar}>
         <span><i /><i /><i /></span>
-        <b>KIRA / REAL APP</b>
-        <em><i /> LIVE CAPTURE</em>
+        <b>{copy.mediaTitle}</b>
+        <em><i /> {copy.mediaStatus}</em>
       </div>
       <div className={styles.mediaImage}>
-        {media.kind === 'live' ? (
+        {screen === 'discover' ? (
           <LiveAppScreen />
         ) : (
-          <Image src={media.src ?? ''} alt={media.alt} width={588} height={1280} unoptimized />
+          <Image src={asset.src} alt={`${asset.alt.en} — ${asset.alt.ar}`} width={asset.width} height={asset.height} unoptimized />
         )}
       </div>
-      <figcaption><CheckIcon /><LocalizedText en="Captured from Kira’s installed Android build" ar="لقطة من نسخة أندرويد المثبّتة لكيرا" /></figcaption>
+      <figcaption><CheckIcon /><LocalizedText en={copy.mediaCaption.en} ar={copy.mediaCaption.ar} /></figcaption>
     </figure>
   );
 }
@@ -57,13 +61,14 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
 
   const currentIndex = tutorials.findIndex((item) => item.slug === tutorial.slug);
   const nextTutorial = tutorials[(currentIndex + 1) % tutorials.length];
+  const copy = tutorialsPageCopy.article;
 
   return (
     <article className={styles.articlePage}>
       <div className={`${styles.articleLayout} shell`}>
-        <aside className={styles.articleSidebar} aria-label="Tutorial library">
-          <Link className={styles.sidebarHome} href="/tutorials"><BookIcon /><LocalizedText en="All tutorials" ar="كل الشروحات" /></Link>
-          <p><LocalizedText en="QUICK GUIDES" ar="أدلة سريعة" /></p>
+        <aside className={styles.articleSidebar} aria-label={copy.tutorialLibraryLabel}>
+          <Link className={styles.sidebarHome} href="/tutorials"><BookIcon /><LocalizedText en={copy.allTutorials.en} ar={copy.allTutorials.ar} /></Link>
+          <p><LocalizedText en={copy.quickGuides.en} ar={copy.quickGuides.ar} /></p>
           <nav>
             {tutorials.map((item, index) => (
               <Link
@@ -76,13 +81,13 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
               </Link>
             ))}
           </nav>
-          <Link className={styles.sidebarSupport} href="/support"><LocalizedText en="Still need help?" ar="ما زلت تحتاج مساعدة؟" /><span><LocalizedText en="Open support" ar="افتح الدعم" /> <ArrowIcon /></span></Link>
+          <Link className={styles.sidebarSupport} href="/support"><LocalizedText en={copy.stillNeedHelp.en} ar={copy.stillNeedHelp.ar} /><span><LocalizedText en={copy.openSupport.en} ar={copy.openSupport.ar} /> <ArrowIcon /></span></Link>
         </aside>
 
         <div className={styles.articleContent}>
           <header className={styles.articleHeader}>
-            <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
-              <Link href="/tutorials"><LocalizedText en="Tutorials" ar="الشروحات" /></Link>
+            <nav className={styles.breadcrumbs} aria-label={copy.breadcrumbLabel}>
+              <Link href="/tutorials"><LocalizedText en={copy.tutorials.en} ar={copy.tutorials.ar} /></Link>
               <span>/</span>
               <span><LocalizedText en={tutorialCategoryLabels[tutorial.category].en} ar={tutorialCategoryLabels[tutorial.category].ar} /></span>
             </nav>
@@ -96,10 +101,10 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
             <p><LocalizedText en={tutorial.intro.en} ar={tutorial.intro.ar} /></p>
           </header>
 
-          <TutorialMediaFrame media={tutorial.cover} />
+          <TutorialMediaFrame screen={tutorial.cover} />
 
           <div className={styles.mobileOnPage}>
-            <p><LocalizedText en="IN THIS GUIDE" ar="في هذا الشرح" /></p>
+            <p><LocalizedText en={copy.inThisGuide.en} ar={copy.inThisGuide.ar} /></p>
             {tutorial.steps.map((step, index) => <a href={`#${step.id}`} key={step.id}>{index + 1}. <LocalizedText en={step.title.en} ar={step.title.ar} /></a>)}
           </div>
 
@@ -108,20 +113,20 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
               <section id={step.id} className={styles.tutorialStep} key={step.id}>
                 <div className={styles.stepNumber}>{String(index + 1).padStart(2, '0')}</div>
                 <div className={styles.stepCopy}>
-                  <p><LocalizedText en={`STEP ${index + 1}`} ar={`الخطوة ${index + 1}`} /></p>
+                  <p><LocalizedText en={`${copy.stepPrefix.en} ${index + 1}`} ar={`${copy.stepPrefix.ar} ${index + 1}`} /></p>
                   <h2><LocalizedText en={step.title.en} ar={step.title.ar} /></h2>
                   <div className={styles.stepBody}><LocalizedText en={step.body.en} ar={step.body.ar} /></div>
                   {step.tip ? (
-                    <aside className={styles.tip}><span>✦</span><p><strong><LocalizedText en="Good to know" ar="معلومة مفيدة" /></strong><LocalizedText en={step.tip.en} ar={step.tip.ar} /></p></aside>
+                    <aside className={styles.tip}><span>✦</span><p><strong><LocalizedText en={copy.tipLabel.en} ar={copy.tipLabel.ar} /></strong><LocalizedText en={step.tip.en} ar={step.tip.ar} /></p></aside>
                   ) : null}
-                  {step.media ? <TutorialMediaFrame media={step.media} compact /> : null}
+                  {step.media ? <TutorialMediaFrame screen={step.media} compact /> : null}
                 </div>
               </section>
             ))}
           </div>
 
           <section className={styles.nextGuide}>
-            <p><LocalizedText en="CONTINUE LEARNING" ar="أكمل التعلّم" /></p>
+            <p><LocalizedText en={copy.continueLearning.en} ar={copy.continueLearning.ar} /></p>
             <Link href={`/tutorials/${nextTutorial.slug}` as Route}>
               <span><LocalizedText en={nextTutorial.title.en} ar={nextTutorial.title.ar} /></span>
               <ArrowIcon />
@@ -129,14 +134,14 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
           </section>
         </div>
 
-        <aside className={styles.articleToc} aria-label="On this page">
-          <p><LocalizedText en="IN THIS GUIDE" ar="في هذا الشرح" /></p>
+        <aside className={styles.articleToc} aria-label={copy.onThisPageLabel}>
+          <p><LocalizedText en={copy.inThisGuide.en} ar={copy.inThisGuide.ar} /></p>
           <nav>
             {tutorial.steps.map((step, index) => (
               <a href={`#${step.id}`} key={step.id}><span>{String(index + 1).padStart(2, '0')}</span><LocalizedText en={step.title.en} ar={step.title.ar} /></a>
             ))}
           </nav>
-          <span className={styles.tocTime}><i /> <LocalizedText en={`${tutorial.duration.en} read`} ar={`قراءة ${tutorial.duration.ar}`} /></span>
+          <span className={styles.tocTime}><i /> <LocalizedText en={`${tutorial.duration.en} ${copy.readSuffix.en}`} ar={`${copy.readSuffix.ar} ${tutorial.duration.ar}`} /></span>
         </aside>
       </div>
     </article>

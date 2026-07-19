@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { PageHero } from '@/components/page-hero';
-import { LocalizedText } from '@/components/localized-text';
+import { PageHero } from '@/components/documents/page-hero';
+import { LocalizedText } from '@/components/ui/localized-text';
+import { siteCopy } from '@/content/site';
 
 interface TocItem {
   href: `#${string}`;
@@ -21,12 +22,12 @@ export function DocumentPage({ eyebrow, title, intro, toc, heroActions, children
   return (
     <article className="documentPage shell">
       <PageHero eyebrow={eyebrow} title={title} intro={intro}>{heroActions}</PageHero>
-      <p className="documentLanguageNotice"><LocalizedText en="" ar="هذه الصفحة المرجعية متاحة حاليًا باللغة الإنجليزية لضمان دقة الإرشادات والنصوص القانونية." /></p>
+      <p className="documentLanguageNotice"><LocalizedText en="" ar={siteCopy.documents.englishOnlyNotice} /></p>
       <div className={toc?.length ? 'documentGrid' : 'documentGrid documentGridSolo'}>
         <div className="documentBody">{children}</div>
         {toc?.length ? (
-          <aside className="tableOfContents" aria-label="On this page">
-            <p><LocalizedText en="On this page" ar="في هذه الصفحة" /></p>
+          <aside className="tableOfContents" aria-label={siteCopy.documents.onThisPageLabel}>
+            <p><LocalizedText en={siteCopy.documents.onThisPage.en} ar={siteCopy.documents.onThisPage.ar} /></p>
             <nav>{toc.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}</nav>
           </aside>
         ) : null}

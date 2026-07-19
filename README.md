@@ -30,9 +30,9 @@ npm run preview    # serve the generated out/ directory on port 4173
 - `/.well-known/apple-app-site-association`
 - `/whatsnew/35/whatsnew.json`
 
-Pages live in `src/app/`, shared UI in `src/components/`, tutorial copy in `src/content/tutorials.ts`, public deployment files in `public/`, and deployment checks in `scripts/`. Homepage sections are isolated under `src/components/home/`. A small client preference controller synchronizes dark/light theme, English/Arabic copy, RTL direction, and the matching authentic app screenshot; preferences persist locally. The tutorial library provides client-side search and category filters while every tutorial still exports as a static route.
+Route entry points live in `src/app/`; rendering code is grouped under `src/components/ui/`, `layout/`, `home/`, `tutorials/`, and `documents/`. Editable site copy, tutorial data, help/policy content, and media references live in `src/content/`. Start with [`src/content/README.md`](src/content/README.md) when changing text or images. Public deployment files live in `public/`, and deployment checks live in `scripts/`.
 
-Official branding lives in `public/brand/`. `public/screens/` contains genuine captures from the installed Android app, resized and compressed for web delivery without visual reconstruction. `npm run check` enforces a 160 KB per-asset budget and validates product content, routes, metadata, security headers, and app-link files.
+Official branding, fonts, and genuine app captures are organized under `public/assets/`. Image paths, dimensions, and bilingual alt text are registered once in `src/content/media.ts`. A small preference controller synchronizes dark/light theme, English/Arabic copy, RTL direction, and the matching app capture; preferences persist locally. `npm run check` enforces a 160 KB per-asset budget and validates product content, routes, metadata, security headers, and app-link files.
 
 ## Production configuration
 

@@ -1,16 +1,18 @@
 import type { MetadataRoute } from 'next';
 
+import { siteConfig } from '@/content/site';
+
 export const dynamic = 'force-static';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Kira Manga',
-    short_name: 'Kira',
-    description: 'A focused manga reader for Android and iOS.',
+    name: siteConfig.name,
+    short_name: siteConfig.shortName,
+    description: siteConfig.metadata.shortDescription,
     start_url: '/',
     display: 'standalone',
-    background_color: '#0e1014',
-    theme_color: '#0e1014',
+    background_color: siteConfig.themeColor,
+    theme_color: siteConfig.themeColor,
     icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
   };
 }
