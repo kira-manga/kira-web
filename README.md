@@ -30,7 +30,9 @@ npm run preview    # serve the generated out/ directory on port 4173
 - `/.well-known/apple-app-site-association`
 - `/whatsnew/35/whatsnew.json`
 
-Pages live in `src/app/`, shared UI in `src/components/`, public deployment files in `public/`, and deployment checks in `scripts/`.
+Pages live in `src/app/`, shared UI in `src/components/`, public deployment files in `public/`, and deployment checks in `scripts/`. Homepage sections are isolated under `src/components/home/`; they remain server components with no custom client-side state.
+
+The responsive hero artwork lives in `public/images/`. `npm run check` enforces a 150 KB mobile and 400 KB desktop image budget in addition to route, metadata, security-header, and app-link validation.
 
 ## Production configuration
 

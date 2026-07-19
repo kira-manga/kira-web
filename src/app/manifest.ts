@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'A focused manga reader for Android and iOS.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0e1014',
-    theme_color: '#ff5b6e',
+    background_color: '#f6f2e8',
+    theme_color: '#f5c33d',
     icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
   };
 }

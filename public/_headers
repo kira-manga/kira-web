@@ -17,6 +17,9 @@
   Content-Type: image/png
   Cache-Control: public, max-age=86400
 
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 /manifest.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
 
