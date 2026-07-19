@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "__APPLE_TEAM_ID__.__IOS_BUNDLE_ID__",
+        "components": [
+          {
+            "/": "/activate/*",
+            "comment": "Open Kira source activation links in the installed app."
+          },
+          {
+            "/": "/activate",
+            "comment": "Open the activation landing path without a trailing slash."
+          }
+        ]
+      }
+    ]
+  }
+}

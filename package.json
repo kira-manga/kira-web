@@ -1,0 +1,33 @@
+{
+  "name": "kira-web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "node scripts/validate-build-env.mjs",
+    "build": "next build && node scripts/materialize-associations.mjs",
+    "check": "node scripts/check.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "preview": "node scripts/dev-server.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run check",
+    "verify:production": "node scripts/verify-deployment.mjs"
+  },
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.2.10",
+    "typescript": "^5.9.0"
+  }
+}

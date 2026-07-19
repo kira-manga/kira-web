@@ -1,0 +1,17 @@
+{
+  "features": [
+    {
+      "title": {
+        "en": "Welcome to Kira Manga",
+        "ar": "مرحبًا بك في Kira Manga"
+      },
+      "description": {
+        "en": "This release adds a clearer Start Reading flow, permanent source-management activation, Kira backup and manga-package imports, and production reliability improvements.",
+        "ar": "يضيف هذا الإصدار تجربة أوضح لبدء القراءة، وتفعيلًا دائمًا لإدارة المصادر، واستيراد نسخ Kira الاحتياطية وحزم المانجا، وتحسينات في موثوقية التطبيق."
+      },
+      "mediaType": "IMAGE",
+      "isNew": true,
+      "version": "1.0.0"
+    }
+  ]
+}
