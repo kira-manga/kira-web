@@ -4,6 +4,7 @@ const nextConfig = {
   trailingSlash: true,
   reactStrictMode: true,
   typedRoutes: true,
+  images: { unoptimized: true },
 };
 
 export default nextConfig;

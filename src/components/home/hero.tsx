@@ -1,82 +1,102 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
-import {
-  ArrowIcon,
-  BookIcon,
-  HistoryIcon,
-  HomeIcon,
-  LibraryIcon,
-  SearchIcon,
-  SettingsIcon,
-} from '@/components/icons';
+import { ArrowIcon, BookIcon, PlayIcon } from '@/components/icons';
+import { LocalizedText } from '@/components/localized-text';
+import { LiveAppScreen } from '@/components/preferences';
 
 import styles from './home.module.css';
 
 export function Hero() {
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
+      <div className={styles.heroGlow} aria-hidden="true" />
+      <div className={styles.heroNoise} aria-hidden="true" />
+
       <div className={`${styles.heroInner} shell`}>
         <div className={styles.heroCopy}>
-          <p className={styles.heroKicker}><span />Kira Manga for Android &amp; iOS</p>
-          <h1 id="hero-title">Your manga.<br /><em>Your way.</em></h1>
-          <p>Discover new stories, build your library, download chapters, and continue exactly where you stopped—all in one focused reader.</p>
+          <p className={styles.releasePill}>
+            <span className={styles.releaseDot} />
+            <LocalizedText en="A calmer way to read" ar="طريقة أهدأ للقراءة" />
+            <ArrowIcon />
+          </p>
+
+          <h1 id="hero-title">
+            <LocalizedText
+              en={<>All your manga.<br /><span>None of the noise.</span></>}
+              ar={<>كل المانجا التي تحبها.<br /><span>بلا ضوضاء.</span></>}
+            />
+          </h1>
+
+          <p className={styles.heroIntro}>
+            <LocalizedText
+              en="Discover series, keep a local library, download chapters, and read in your language—inside one focused app."
+              ar="اكتشف السلاسل، وابنِ مكتبتك، وحمّل الفصول، واقرأ بلغتك—داخل تطبيق واحد مصمم للتركيز."
+            />
+          </p>
+
           <div className={styles.heroActions}>
-            <Link className="button buttonPrimary" href="/activate">Open Kira <ArrowIcon /></Link>
-            <a className="button buttonGhost" href="#experience">See the app</a>
+            <Link className={styles.primaryAction} href="/activate">
+              <LocalizedText en="Start with Kira" ar="ابدأ مع كيرا" /> <ArrowIcon />
+            </Link>
+            <Link className={styles.secondaryAction} href="/tutorials">
+              <PlayIcon /> <LocalizedText en="Explore tutorials" ar="استكشف الشروحات" />
+            </Link>
           </div>
-          <ul className={styles.heroProof} aria-label="Kira highlights">
-            <li><span />Read offline</li>
-            <li><span />Local library</li>
-            <li><span />Portable backups</li>
-          </ul>
+
+          <div className={styles.heroProof} aria-label="Kira product highlights">
+            <span><i>01</i><LocalizedText en="Real app screens" ar="شاشات حقيقية" /></span>
+            <span><i>02</i><LocalizedText en="Android & iOS" ar="أندرويد وiOS" /></span>
+            <span><i>03</i><LocalizedText en="English & Arabic" ar="العربية والإنجليزية" /></span>
+          </div>
         </div>
 
-        <div className={styles.productStage} aria-label="Preview of the Kira Manga app">
-          <div className={styles.stageGlow} />
-          <div className={styles.readerPeek} aria-hidden="true">
-            <div className={styles.peekHeader}><span>‹</span><strong>Chapter 24</strong><span>•••</span></div>
-            <div className={styles.peekPage}>
-              <i /><i /><i /><i />
+        <div className={styles.productStage} aria-label="Real Kira app preview">
+          <div className={styles.stageOrbit} aria-hidden="true" />
+          <figure className={styles.primaryCapture}>
+            <div className={styles.captureBar}>
+              <span><i /><i /><i /></span>
+              <b>KIRA / DISCOVER</b>
+              <em><span /> LIVE</em>
             </div>
-            <div className={styles.peekProgress}><span /></div>
-          </div>
+            <div className={styles.liveCapture}><LiveAppScreen eager /></div>
+            <figcaption>
+              <span><LocalizedText en="Discover" ar="اكتشف" /></span>
+              <small><LocalizedText en="Actual app capture" ar="لقطة حقيقية من التطبيق" /></small>
+            </figcaption>
+          </figure>
 
-          <div className={styles.phone}>
-            <div className={styles.phoneStatus}><span>9:41</span><i /><span>● ◒</span></div>
-            <div className={styles.appHeader}>
-              <div><small>KIRA</small><strong>Discover</strong></div>
-              <button type="button" tabIndex={-1} aria-hidden="true"><SearchIcon /></button>
-            </div>
-            <div className={styles.sourcePills} aria-hidden="true">
-              <span className={styles.sourceActive}>All sources</span><span>Manga</span><span>Arabic</span>
-            </div>
-            <div className={styles.appSectionTitle}><strong>Popular now</strong><span>View all</span></div>
-            <div className={styles.coverRow} aria-hidden="true">
-              <article><div className={`${styles.appCover} ${styles.coverOne}`}><b>DUSK</b><i>01</i></div><strong>After Dusk</strong><small>Chapter 38</small></article>
-              <article><div className={`${styles.appCover} ${styles.coverTwo}`}><b>NEON</b><i>02</i></div><strong>Neon Ronin</strong><small>Chapter 12</small></article>
-              <article><div className={`${styles.appCover} ${styles.coverThree}`}><b>YAMI</b><i>03</i></div><strong>Yami</strong><small>Chapter 74</small></article>
-            </div>
-            <div className={styles.appSectionTitle}><strong>Latest updates</strong><span>Today</span></div>
-            <div className={styles.updateList} aria-hidden="true">
-              <article><div className={`${styles.updateCover} ${styles.coverFour}`} /><div><strong>Paper Moon</strong><small>Chapter 19 · 8 min ago</small></div><b>19</b></article>
-              <article><div className={`${styles.updateCover} ${styles.coverFive}`} /><div><strong>Silent Current</strong><small>Chapter 42 · 1 hr ago</small></div><b>42</b></article>
-            </div>
-            <div className={styles.appNav} aria-hidden="true">
-              <span className={styles.navActive}><HomeIcon /><small>Home</small></span>
-              <span><HistoryIcon /><small>History</small></span>
-              <span><LibraryIcon /><small>Library</small></span>
-              <span><SettingsIcon /><small>Settings</small></span>
-            </div>
-          </div>
+          <figure className={styles.secondaryCapture}>
+            <Image
+              src="/screens/manga-details.jpg"
+              alt="A real Kira manga details screen"
+              width={588}
+              height={1280}
+              priority
+              unoptimized
+            />
+            <figcaption><LocalizedText en="Details & chapters" ar="التفاصيل والفصول" /></figcaption>
+          </figure>
 
-          <div className={styles.continueToast} aria-hidden="true">
-            <span><BookIcon /></span>
-            <div><small>Continue reading</small><strong>Yami · Chapter 24</strong><i><b /></i></div>
-            <em>68%</em>
+          <Link className={styles.tutorialCard} href="/tutorials/getting-started">
+            <span className={styles.tutorialIcon}><BookIcon /></span>
+            <span>
+              <small><LocalizedText en="QUICK START · 4 MIN" ar="بدء سريع · ٤ دقائق" /></small>
+              <strong><LocalizedText en="From setup to first chapter" ar="من الإعداد إلى أول فصل" /></strong>
+            </span>
+            <ArrowIcon />
+          </Link>
+
+          <div className={styles.realBadge}>
+            <span />
+            <LocalizedText en="CURRENT ANDROID BUILD" ar="نسخة أندرويد الحالية" />
           </div>
         </div>
       </div>
-      <div className={styles.heroMarquee} aria-hidden="true"><span>Discover</span><i /> <span>Save</span><i /> <span>Download</span><i /> <span>Read</span><i /> <span>Continue</span></div>
+
+      <a className={styles.scrollCue} href="#features" aria-label="Scroll to product features">
+        <span /><LocalizedText en="SCROLL TO EXPLORE" ar="مرّر للاستكشاف" />
+      </a>
     </section>
   );
 }

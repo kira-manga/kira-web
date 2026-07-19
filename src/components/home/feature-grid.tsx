@@ -1,51 +1,73 @@
-import { BackupIcon, BookIcon, DownloadIcon } from '@/components/icons';
+import { BookIcon, DownloadIcon, GlobeIcon, SearchIcon } from '@/components/icons';
+import { LocalizedText } from '@/components/localized-text';
 
 import styles from './home.module.css';
 
 const features = [
   {
-    icon: BookIcon,
+    icon: SearchIcon,
     number: '01',
-    label: 'LIBRARY',
-    title: 'Everything you follow, in one calm place.',
-    text: 'Save titles, see new chapters, and jump back into your current read without searching again.',
-    className: styles.libraryFeature,
+    enTitle: 'Discover across sources',
+    arTitle: 'اكتشف عبر المصادر',
+    enText: 'Move between enabled sources, search directly, and find something worth your next hour.',
+    arText: 'تنقّل بين المصادر المفعّلة وابحث مباشرةً واعثر على ما يستحق ساعتك القادمة.',
+  },
+  {
+    icon: BookIcon,
+    number: '02',
+    enTitle: 'A library that remembers',
+    arTitle: 'مكتبة تتذكّر',
+    enText: 'Keep titles, chapter state, and reading progress together so returning feels instant.',
+    arText: 'احتفظ بالعناوين وحالة الفصول وتقدّم القراءة معًا لتعود فورًا إلى مكانك.',
   },
   {
     icon: DownloadIcon,
-    number: '02',
-    label: 'OFFLINE',
-    title: 'Your next chapter does not need a signal.',
-    text: 'Download chapters before a trip and read completed downloads whenever you are offline.',
-    className: styles.offlineFeature,
+    number: '03',
+    enTitle: 'Chapters ready offline',
+    arTitle: 'فصول جاهزة دون إنترنت',
+    enText: 'Download before the signal disappears and keep completed chapters available on your device.',
+    arText: 'حمّل قبل أن تنقطع الشبكة واحتفظ بالفصول المكتملة جاهزة على جهازك.',
   },
   {
-    icon: BackupIcon,
-    number: '03',
-    label: 'BACKUPS',
-    title: 'Move your reading life, not just the app.',
-    text: 'Export a Kira backup before switching devices or reinstalling, then bring your collection back.',
-    className: styles.backupFeature,
+    icon: GlobeIcon,
+    number: '04',
+    enTitle: 'Designed for your language',
+    arTitle: 'مصمم للغتك',
+    enText: 'Multilingual UI and complete Arabic right-to-left behavior make every screen feel native.',
+    arText: 'واجهة متعددة اللغات ودعم عربي كامل من اليمين إلى اليسار يجعل كل شاشة طبيعية.',
   },
 ] as const;
 
 export function FeatureGrid() {
   return (
-    <section className={`${styles.section} shell`} id="features" aria-labelledby="features-title">
-      <header className={styles.sectionHeader}>
-        <p className={styles.sectionKicker}><span />Made for manga readers</p>
+    <section className={styles.featureSection} id="features" aria-labelledby="features-title">
+      <div className={`${styles.sectionHeading} shell`}>
         <div>
-          <h2 id="features-title">The useful parts stay close.<br /><em>The noise stays out.</em></h2>
-          <p>Kira keeps discovery, reading, and ownership simple from the first chapter to the hundredth.</p>
+          <p className={styles.eyebrow}><span>01</span><LocalizedText en="THE READING STACK" ar="تجربة القراءة" /></p>
+          <h2 id="features-title">
+            <LocalizedText
+              en={<>From “what should I read?”<br /><span>to the last page.</span></>}
+              ar={<>من «ماذا أقرأ؟»<br /><span>حتى الصفحة الأخيرة.</span></>}
+            />
+          </h2>
         </div>
-      </header>
+        <p>
+          <LocalizedText
+            en="Kira keeps discovery, progress, downloads, and language controls in one deliberate flow. Nothing competes with the chapter."
+            ar="كيرا يجمع الاكتشاف والتقدّم والتنزيل وإعدادات اللغة في مسار واحد مدروس. لا شيء ينافس الفصل على انتباهك."
+          />
+        </p>
+      </div>
 
-      <div className={styles.featureGrid}>
-        {features.map(({ icon: Icon, number, label, title, text, className }) => (
-          <article className={`${styles.featureCard} ${className}`} key={number}>
-            <div className={styles.featureMeta}><span>{number} · {label}</span><Icon /></div>
-            <div className={styles.featureCopy}><h3>{title}</h3><p>{text}</p></div>
-            <div className={styles.featureArt} aria-hidden="true"><i /><i /><i /><b /></div>
+      <div className={`${styles.featureGrid} shell`}>
+        {features.map(({ icon: Icon, number, enTitle, arTitle, enText, arText }) => (
+          <article className={styles.featureCard} key={number}>
+            <div className={styles.featureTop}>
+              <span className={styles.featureIcon}><Icon /></span>
+              <span className={styles.featureNumber}>{number}</span>
+            </div>
+            <h3><LocalizedText en={enTitle} ar={arTitle} /></h3>
+            <p><LocalizedText en={enText} ar={arText} /></p>
           </article>
         ))}
       </div>

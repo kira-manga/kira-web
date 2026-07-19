@@ -77,3 +77,11 @@ export function SettingsIcon(props: IconProps) {
 export function PlayIcon(props: IconProps) {
   return <IconBase {...props}><path d="m8 5 11 7-11 7V5Z" /></IconBase>;
 }
+
+export function MoonIcon(props: IconProps) {
+  return <IconBase {...props}><path d="M20.5 14.2A8.2 8.2 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" /></IconBase>;
+}
+
+export function SunIcon(props: IconProps) {
+  return <IconBase {...props}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></IconBase>;
+}

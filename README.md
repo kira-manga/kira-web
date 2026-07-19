@@ -24,15 +24,15 @@ npm run preview    # serve the generated out/ directory on port 4173
 
 ## Routes and assets
 
-- `/`, `/guide`, `/support`, and `/activate`
+- `/`, `/tutorials`, `/tutorials/[slug]`, `/guide`, `/support`, and `/activate`
 - `/privacy`, `/terms`, `/takedown`, and `/data-deletion`
 - `/.well-known/assetlinks.json`
 - `/.well-known/apple-app-site-association`
 - `/whatsnew/35/whatsnew.json`
 
-Pages live in `src/app/`, shared UI in `src/components/`, public deployment files in `public/`, and deployment checks in `scripts/`. Homepage sections are isolated under `src/components/home/`; they remain server components with no custom client-side state. The product previews are built with semantic markup and CSS, so the landing page ships no hero-image payload or animation JavaScript.
+Pages live in `src/app/`, shared UI in `src/components/`, tutorial copy in `src/content/tutorials.ts`, public deployment files in `public/`, and deployment checks in `scripts/`. Homepage sections are isolated under `src/components/home/`. A small client preference controller synchronizes dark/light theme, English/Arabic copy, RTL direction, and the matching authentic app screenshot; preferences persist locally. The tutorial library provides client-side search and category filters while every tutorial still exports as a static route.
 
-`npm run check` validates product content, routes, metadata, security headers, and app-link files in the generated export.
+Official branding lives in `public/brand/`. `public/screens/` contains genuine captures from the installed Android app, resized and compressed for web delivery without visual reconstruction. `npm run check` enforces a 160 KB per-asset budget and validates product content, routes, metadata, security headers, and app-link files.
 
 ## Production configuration
 

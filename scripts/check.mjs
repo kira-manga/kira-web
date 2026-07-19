@@ -1,11 +1,13 @@
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.join(root, 'out');
 const requiredPages = ['index.html', 'activate/index.html', 'privacy/index.html', 'terms/index.html',
-  'guide/index.html', 'support/index.html', 'takedown/index.html', 'data-deletion/index.html',
+  'guide/index.html', 'tutorials/index.html', 'tutorials/getting-started/index.html',
+  'tutorials/discover-manga/index.html', 'tutorials/read-offline/index.html',
+  'tutorials/personalize-kira/index.html', 'support/index.html', 'takedown/index.html', 'data-deletion/index.html',
   '404.html'];
 
 for (const page of requiredPages) {
@@ -17,8 +19,29 @@ for (const page of requiredPages) {
 }
 
 const home = await readFile(path.join(output, 'index.html'), 'utf8');
-for (const marker of ['Discover', 'Popular now', 'Latest updates', 'Read offline']) {
+for (const marker of ['All your manga.', 'None of the noise.', 'REAL BUILD', 'كل المانجا', 'manga-details.jpg', '/tutorials/']) {
   if (!home.includes(marker)) throw new Error(`Homepage is missing product marker: ${marker}`);
+}
+
+const tutorialHub = await readFile(path.join(output, 'tutorials/index.html'), 'utf8');
+for (const marker of ['Learn Kira', 'Search tutorials', 'تعلّم كيرا', 'getting-started']) {
+  if (!tutorialHub.includes(marker)) throw new Error(`Tutorial hub is missing marker: ${marker}`);
+}
+
+for (const asset of [
+  'brand/kira-logo.svg',
+  'fonts/gellix-regular.ttf',
+  'fonts/gellix-semibold.ttf',
+  'fonts/gellix-bold.ttf',
+  'screens/discover-en-dark.jpg',
+  'screens/discover-en-light.jpg',
+  'screens/discover-ar-dark.jpg',
+  'screens/discover-ar-light.jpg',
+  'screens/manga-details.jpg',
+  'screens/settings-dark.jpg',
+]) {
+  const details = await stat(path.join(output, asset));
+  if (details.size > 160_000) throw new Error(`${asset} exceeds the 160 KB production asset budget`);
 }
 
 for (const asset of ['_headers', '_redirects', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
@@ -28,7 +51,7 @@ for (const asset of ['_headers', '_redirects', 'robots.txt', 'sitemap.xml', 'man
 
 const headers = await readFile(path.join(output, '_headers'), 'utf8');
 for (const header of ['Content-Security-Policy', 'X-Content-Type-Options', 'Permissions-Policy',
-  '/opengraph-image', 'image/png', 'application/manifest+json', 'application/xml']) {
+  '/opengraph-image', '/screens/*', '/brand/*', '/fonts/*', 'image/png', 'application/manifest+json', 'application/xml']) {
   if (!headers.includes(header)) throw new Error(`_headers is missing ${header}`);
 }
 
