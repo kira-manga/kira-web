@@ -53,3 +53,27 @@ export function MenuIcon(props: IconProps) {
 export function CloseIcon(props: IconProps) {
   return <IconBase {...props}><path d="m6 6 12 12M18 6 6 18" /></IconBase>;
 }
+
+export function SearchIcon(props: IconProps) {
+  return <IconBase {...props}><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></IconBase>;
+}
+
+export function HomeIcon(props: IconProps) {
+  return <IconBase {...props}><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10M9 20v-6h6v6" /></IconBase>;
+}
+
+export function HistoryIcon(props: IconProps) {
+  return <IconBase {...props}><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></IconBase>;
+}
+
+export function LibraryIcon(props: IconProps) {
+  return <IconBase {...props}><path d="M5 4h4v16H5zM11 4h4v16h-4zM17 6l3-1 3 14-3 1z" /></IconBase>;
+}
+
+export function SettingsIcon(props: IconProps) {
+  return <IconBase {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" /></IconBase>;
+}
+
+export function PlayIcon(props: IconProps) {
+  return <IconBase {...props}><path d="m8 5 11 7-11 7V5Z" /></IconBase>;
+}

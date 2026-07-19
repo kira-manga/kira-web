@@ -1,4 +1,4 @@
-import { access, readFile, stat } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,18 +17,8 @@ for (const page of requiredPages) {
 }
 
 const home = await readFile(path.join(output, 'index.html'), 'utf8');
-for (const marker of ['kira-hero-960.jpg', 'kira-hero-1693.jpg', 'fetchPriority="high"']) {
-  if (!home.includes(marker)) throw new Error(`Homepage is missing performance marker: ${marker}`);
-}
-
-for (const [asset, maximumBytes] of [
-  ['images/kira-hero-960.jpg', 150_000],
-  ['images/kira-hero-1693.jpg', 400_000],
-]) {
-  const details = await stat(path.join(output, asset));
-  if (details.size > maximumBytes) {
-    throw new Error(`${asset} is ${details.size} bytes; expected at most ${maximumBytes}`);
-  }
+for (const marker of ['Discover', 'Popular now', 'Latest updates', 'Read offline']) {
+  if (!home.includes(marker)) throw new Error(`Homepage is missing product marker: ${marker}`);
 }
 
 for (const asset of ['_headers', '_redirects', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',

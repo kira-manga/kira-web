@@ -10,7 +10,7 @@ export function HowItWorks() {
   return (
     <section className={`${styles.stepsSection} shell`} aria-labelledby="steps-title">
       <header>
-        <p className={styles.sectionKicker}>Start in minutes</p>
+        <p className={styles.sectionKicker}><span />Start in minutes</p>
         <h2 id="steps-title">From install to<br /><em>chapter one.</em></h2>
       </header>
       <ol>

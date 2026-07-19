@@ -10,7 +10,7 @@ const siteUrl = 'https://kiramanga.me';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: 'Kira Manga — Read your way', template: '%s — Kira Manga' },
+  title: { default: 'Kira Manga — Your manga, your way', template: '%s — Kira Manga' },
   description: 'A focused manga reader for Android and iOS with local libraries, offline chapters, backups, and multilingual reading tools.',
   applicationName: 'Kira Manga',
   alternates: { canonical: '/' },
@@ -18,12 +18,12 @@ export const metadata: Metadata = {
     type: 'website',
     url: siteUrl,
     siteName: 'Kira Manga',
-    title: 'Kira Manga — Read your way',
+    title: 'Kira Manga — Your manga, your way',
     description: 'Your library, offline chapters, backups, and multilingual reading tools in one focused manga reader.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kira Manga — Read your way',
+    title: 'Kira Manga — Your manga, your way',
     description: 'A focused manga reader for Android and iOS.',
   },
   robots: { index: true, follow: true },
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#f5c33d',
-  colorScheme: 'light',
+  themeColor: '#0e1014',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
