@@ -1,4 +1,4 @@
-name: Build and deploy Kira Web
+name: Build and deploy Kira Web to server3
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  deployments: write
 
 concurrency:
   group: kira-web-production
@@ -17,27 +16,42 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build verified exact-SHA image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - name: Build with production association identifiers
+          context: .
+          load: true
+          push: false
+          tags: kira-web:${{ github.sha }}
+          build-args: |
+            KIRA_WEB_PRODUCTION=${{ secrets.ANDROID_APP_SHA256_CERT_FINGERPRINT != '' }}
+            ANDROID_APP_SHA256_CERT_FINGERPRINT=${{ secrets.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
+            APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}
+            IOS_BUNDLE_ID=${{ vars.IOS_BUNDLE_ID }}
+            ANDROID_PACKAGE_NAME=${{ vars.ANDROID_PACKAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Configure pinned SSH host
         env:
-          KIRA_WEB_PRODUCTION: 'true'
-          ANDROID_APP_SHA256_CERT_FINGERPRINT: ${{ secrets.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
-          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
-          IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID }}
-          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
-        run: npm run build
-      - run: npm run check
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=kira-web --branch=main
+          DEPLOY_KEY: ${{ secrets.SERVER3_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.SERVER3_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/kira_server3
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/kira_server3 ~/.ssh/known_hosts
+      - name: Stream image and deploy
+        env:
+          DEPLOY_HOST: ${{ vars.SERVER3_HOST }}
+          DEPLOY_PORT: ${{ vars.SERVER3_PORT }}
+          DEPLOY_USER: ${{ vars.SERVER3_USER }}
+          REVISION: ${{ github.sha }}
+        run: |
+          docker save "kira-web:$REVISION" | gzip -9 | \
+            ssh -i ~/.ssh/kira_server3 -p "${DEPLOY_PORT:-22}" \
+              -o BatchMode=yes -o IdentitiesOnly=yes \
+              "$DEPLOY_USER@$DEPLOY_HOST" "deploy web $REVISION"
