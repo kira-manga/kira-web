@@ -13,7 +13,7 @@
     "check": "node scripts/check.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "preview": "node scripts/dev-server.mjs",
+    "preview": "next start -p 4173",
     "verify": "npm run lint && npm run typecheck && npm run build && npm run check",
     "verify:production": "node scripts/verify-deployment.mjs"
   },

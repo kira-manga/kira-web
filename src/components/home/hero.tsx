@@ -1,11 +1,9 @@
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { ArrowIcon, BookIcon, PlayIcon } from '@/components/ui/icons';
 import { LocalizedText } from '@/components/ui/localized-text';
-import { LiveAppScreen } from '@/components/ui/preferences';
+import { AppScreen, LiveAppScreen } from '@/components/ui/preferences';
 import { homeCopy } from '@/content/home';
-import { media } from '@/content/media';
 
 import { PhoneMockup } from './phone-mockup';
 
@@ -13,7 +11,6 @@ import styles from './home.module.css';
 
 export function Hero() {
   const copy = homeCopy.hero;
-  const detailsScreen = media.appScreens.mangaDetails;
 
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
@@ -75,36 +72,20 @@ export function Hero() {
             platform={copy.devices.iphone.platform}
             caption={<LocalizedText en={copy.devices.iphone.caption.en} ar={copy.devices.iphone.caption.ar} />}
           >
-            <Image
-              className={styles.phoneImage}
-              src={detailsScreen.src}
-              alt={`${detailsScreen.alt.en} — ${detailsScreen.alt.ar}`}
-              width={detailsScreen.width}
-              height={detailsScreen.height}
-              priority
-              unoptimized
-            />
+            <div className={styles.liveCapture}><AppScreen screen="mangaDetails" eager /></div>
           </PhoneMockup>
 
-          <Link className={styles.tutorialCard} href="/tutorials/getting-started">
+          <Link className={styles.tutorialCard} href="/tutorials">
             <span className={styles.tutorialIcon}><BookIcon /></span>
-            <span>
+            <span className={styles.tutorialCardCopy}>
               <small><LocalizedText en={copy.tutorialKicker.en} ar={copy.tutorialKicker.ar} /></small>
               <strong><LocalizedText en={copy.tutorialTitle.en} ar={copy.tutorialTitle.ar} /></strong>
             </span>
             <ArrowIcon />
           </Link>
-
-          <div className={styles.realBadge}>
-            <span />
-            <LocalizedText en={copy.buildBadge.en} ar={copy.buildBadge.ar} />
-          </div>
         </div>
       </div>
 
-      <a className={styles.scrollCue} href="#features" aria-label={copy.scrollAriaLabel}>
-        <span /><LocalizedText en={copy.scrollLabel.en} ar={copy.scrollLabel.ar} />
-      </a>
     </section>
   );
 }

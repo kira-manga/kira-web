@@ -4,7 +4,8 @@ The site keeps editable content separate from rendering code:
 
 - `site.ts` — metadata, header, footer, shared labels, and navigation links.
 - `home.ts` — every English and Arabic string shown on the homepage.
-- `tutorials.ts` — tutorial categories, cards, steps, durations, and tutorial-page labels.
+- `tutorials.ts` — general tutorial-page interface labels only. Tutorial/category records are authored
+  through the backend ADMIN API and must not be added here.
 - `pages/` — one structured content file for each help or policy page.
 - `media.ts` — the single registry for logo and app-screen paths, dimensions, and alt text.
 - `types.ts` — shared content types. This normally does not need editing.
@@ -37,4 +38,5 @@ Always update both languages. Help and policy pages are currently English-only a
 
 ## Verify changes
 
-Run `npm run verify` before committing. It checks lint, TypeScript, the static production build, routes, metadata, and required assets.
+Run `npm run verify` before committing. It checks lint, TypeScript, the standalone production build,
+the backend-response boundary, associations, and required assets.

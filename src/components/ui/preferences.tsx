@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 
 import { GlobeIcon, MoonIcon, SunIcon } from '@/components/ui/icons';
-import { liveAppScreenSources } from '@/content/media';
+import { liveAppScreenSources, media, type AppScreenKey } from '@/content/media';
 import { siteCopy } from '@/content/site';
 import type { Language, Theme } from '@/content/types';
 
@@ -92,6 +92,21 @@ export function LiveAppScreen({ eager = false }: { eager?: boolean }) {
       className={eager ? 'liveAppScreen liveAppScreenEager' : 'liveAppScreen'}
       role="img"
       aria-label={siteCopy.preferences.liveScreenAlt}
+    />
+  );
+}
+
+export function AppScreen({ screen, eager = false }: { screen: AppScreenKey; eager?: boolean }) {
+  const { preferences } = useKiraPreferences();
+  const asset = media.appScreens[screen];
+  const source = asset.variants[`${preferences.language}-${preferences.theme}`];
+
+  return (
+    <span
+      className={eager ? 'liveAppScreen liveAppScreenEager' : 'liveAppScreen'}
+      role="img"
+      aria-label={asset.alt[preferences.language]}
+      style={{ backgroundImage: `url("${source}")` }}
     />
   );
 }

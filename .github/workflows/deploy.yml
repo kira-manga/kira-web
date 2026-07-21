@@ -33,6 +33,7 @@ jobs:
             APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}
             IOS_BUNDLE_ID=${{ vars.IOS_BUNDLE_ID }}
             ANDROID_PACKAGE_NAME=${{ vars.ANDROID_PACKAGE_NAME }}
+            NEXT_PUBLIC_KIRA_API_URL=https://api.kiramanga.me
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Configure pinned SSH host

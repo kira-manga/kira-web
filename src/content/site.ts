@@ -23,7 +23,7 @@ export const siteCopy = {
   skipLink: { en: 'Skip to content', ar: 'انتقل إلى المحتوى' },
   navigation: [
     { href: '/#features', label: { en: 'Product', ar: 'المنتج' } },
-    { href: '/#real-screens', label: { en: 'Inside Kira', ar: 'داخل كيرا' } },
+    { href: '/#inside-kira', label: { en: 'Inside Kira', ar: 'داخل كيرا' } },
     { href: '/tutorials', label: { en: 'Tutorials', ar: 'الشروحات' } },
     { href: '/support', label: { en: 'Support', ar: 'الدعم' } },
   ],
@@ -38,7 +38,7 @@ export const siteCopy = {
     useDarkTheme: 'Use dark theme',
     switchToEnglish: 'Switch to English',
     switchToArabic: 'التبديل إلى العربية',
-    liveScreenAlt: 'Real Kira app Discover screen — شاشة اكتشف الحقيقية من تطبيق كيرا',
+    liveScreenAlt: 'Kira Discover screen — شاشة اكتشف في كيرا',
     languageToggle: { english: 'EN', arabic: 'ع' },
   },
   footer: {

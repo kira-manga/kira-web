@@ -7,6 +7,7 @@ import { LocalizedText } from '@/components/ui/localized-text';
 import { TutorialLibrary } from '@/components/tutorials/tutorial-library';
 import { media } from '@/content/media';
 import { tutorialsPageCopy } from '@/content/tutorials';
+import { getTutorialCategories, getTutorials } from '@/lib/tutorial-api';
 
 import styles from '@/components/tutorials/tutorials.module.css';
 
@@ -16,9 +17,13 @@ export const metadata: Metadata = {
   alternates: { canonical: '/tutorials' },
 };
 
-export default function TutorialsPage() {
+export const revalidate = 60;
+
+export default async function TutorialsPage() {
   const copy = tutorialsPageCopy.hero;
   const logo = media.brand.logo;
+  const [tutorialResult, categoryResult] = await Promise.all([getTutorials(), getTutorialCategories()]);
+  const available = tutorialResult.status === 'ok' && categoryResult.status === 'ok';
 
   return (
     <div className={styles.tutorialsPage}>
@@ -46,7 +51,17 @@ export default function TutorialsPage() {
         </div>
       </section>
 
-      <div className={`${styles.libraryShell} shell`}><TutorialLibrary /></div>
+      <div className={`${styles.libraryShell} shell`}>
+        {available ? (
+          <TutorialLibrary tutorials={tutorialResult.data} categories={categoryResult.data} />
+        ) : (
+          <section className={styles.emptyState} aria-live="polite">
+            <BookIcon />
+            <h2><LocalizedText en={tutorialsPageCopy.library.unavailableTitle.en} ar={tutorialsPageCopy.library.unavailableTitle.ar} /></h2>
+            <p><LocalizedText en={tutorialsPageCopy.library.unavailableDescription.en} ar={tutorialsPageCopy.library.unavailableDescription.ar} /></p>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

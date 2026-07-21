@@ -13,26 +13,22 @@ export const homeCopy = {
     secondaryCta: { en: 'Explore tutorials', ar: 'استكشف الشروحات' },
     proofLabel: 'Kira product highlights',
     proof: [
-      { en: 'Real app screens', ar: 'شاشات حقيقية' },
       { en: 'Android & iOS', ar: 'أندرويد وiOS' },
       { en: 'English & Arabic', ar: 'العربية والإنجليزية' },
     ],
-    previewLabel: 'Real Kira app preview',
+    previewLabel: 'Kira app preview',
     devices: {
       android: {
         platform: 'ANDROID',
-        caption: { en: 'Discover · real app screen', ar: 'اكتشف · شاشة حقيقية من التطبيق' },
+        caption: { en: 'Discover', ar: 'اكتشف' },
       },
       iphone: {
         platform: 'iPhone',
-        caption: { en: 'Details & chapters · real app screen', ar: 'التفاصيل والفصول · شاشة حقيقية' },
+        caption: { en: 'Details & chapters', ar: 'التفاصيل والفصول' },
       },
     },
     tutorialKicker: { en: 'QUICK START · 4 MIN', ar: 'بدء سريع · ٤ دقائق' },
     tutorialTitle: { en: 'From setup to first chapter', ar: 'من الإعداد إلى أول فصل' },
-    buildBadge: { en: 'ANDROID + iPHONE · REAL APP', ar: 'أندرويد + آيفون · تطبيق حقيقي' },
-    scrollLabel: { en: 'SCROLL TO EXPLORE', ar: 'مرّر للاستكشاف' },
-    scrollAriaLabel: 'Scroll to product features',
   },
   features: {
     eyebrow: { en: 'THE READING STACK', ar: 'تجربة القراءة' },
@@ -85,27 +81,107 @@ export const homeCopy = {
       lead: { en: 'The interface is', ar: 'الواجهة نفسها' },
       accent: { en: 'the advertisement.', ar: 'هي الإعلان.' },
     },
-    authenticity: {
-      en: 'Every screen below comes from the installed Kira app. No generated mockups, no rebuilt UI.',
-      ar: 'كل شاشة أدناه من تطبيق كيرا المثبّت. لا نماذج مولّدة ولا واجهات معاد رسمها.',
-    },
     windowTitle: 'KIRA / PRODUCT TOUR',
-    windowStatus: { en: 'REAL BUILD', ar: 'نسخة حقيقية' },
-    storyLabel: { en: 'DISCOVERY', ar: 'الاكتشاف' },
-    storyTitle: { en: 'A home that gets you somewhere.', ar: 'واجهة توصلك لما تريد.' },
-    storyDescription: {
-      en: 'Switch sources, scan what is popular, catch the latest updates, or go straight to search.',
-      ar: 'بدّل المصادر، وتصفّح الشائع، وتابع آخر التحديثات، أو انتقل مباشرةً إلى البحث.',
-    },
-    signals: [
-      { en: 'Source switching', ar: 'تبديل المصادر' },
-      { en: 'Latest updates', ar: 'آخر التحديثات' },
-      { en: 'Quick save', ar: 'حفظ سريع' },
+    switcherLabel: 'Choose a Kira screen preview',
+    tabs: [
+      { key: 'discover', number: '01', label: { en: 'Discover', ar: 'اكتشف' } },
+      { key: 'history', number: '02', label: { en: 'History', ar: 'السجل' } },
+      { key: 'library', number: '03', label: { en: 'Library', ar: 'المكتبة' } },
+      { key: 'mangaDetails', number: '04', label: { en: 'Details', ar: 'التفاصيل' } },
+      { key: 'notifications', number: '05', label: { en: 'Alerts', ar: 'الإشعارات' } },
+      { key: 'settings', number: '06', label: { en: 'Settings', ar: 'الإعدادات' } },
     ],
-    captions: {
-      discover: { en: 'Discover · adapts to this site’s theme and language', ar: 'اكتشف · تتوافق مع مظهر ولغة الموقع' },
-      details: { en: 'Details · chapters, progress, downloads', ar: 'التفاصيل · الفصول والتقدّم والتنزيل' },
-      settings: { en: 'Control · theme, privacy, storage', ar: 'التحكم · المظهر والخصوصية والتخزين' },
+    stories: {
+      discover: {
+        buttonLabel: 'Show the Discover screen',
+        label: { en: 'DISCOVERY', ar: 'الاكتشاف' },
+        title: { en: 'A home that gets you somewhere.', ar: 'واجهة توصلك لما تريد.' },
+        description: {
+          en: 'Switch sources, scan what is popular, catch the latest updates, or go straight to search.',
+          ar: 'بدّل المصادر، وتصفّح الشائع، وتابع آخر التحديثات، أو انتقل مباشرةً إلى البحث.',
+        },
+        signals: [
+          { en: 'Source switching', ar: 'تبديل المصادر' },
+          { en: 'Latest updates', ar: 'آخر التحديثات' },
+          { en: 'Quick save', ar: 'حفظ سريع' },
+        ],
+        caption: { en: 'Discover · popular titles and latest updates', ar: 'اكتشف · العناوين الشائعة وآخر التحديثات' },
+      },
+      history: {
+        buttonLabel: 'Show the reading History screen',
+        label: { en: 'HISTORY', ar: 'السجل' },
+        title: { en: 'Pick up exactly where you stopped.', ar: 'عُد تمامًا إلى حيث توقفت.' },
+        description: {
+          en: 'Recent reading activity keeps the next chapter close without making you search for it again.',
+          ar: 'يبقي نشاط القراءة الأخير الفصل التالي قريبًا من دون الحاجة إلى البحث عنه مجددًا.',
+        },
+        signals: [
+          { en: 'Recent reads', ar: 'القراءات الأخيرة' },
+          { en: 'Chapter progress', ar: 'تقدّم الفصول' },
+          { en: 'Fast return', ar: 'عودة سريعة' },
+        ],
+        caption: { en: 'History · recent chapters and progress', ar: 'السجل · الفصول الأخيرة والتقدّم' },
+      },
+      library: {
+        buttonLabel: 'Show the Library screen',
+        label: { en: 'LIBRARY', ar: 'المكتبة' },
+        title: { en: 'Your saved series, kept in order.', ar: 'سلاسلك المحفوظة مرتبة دائمًا.' },
+        description: {
+          en: 'Browse saved manga, filter the collection, and see unread progress at a glance.',
+          ar: 'تصفّح المانجا المحفوظة، وصفِّ مجموعتك، وشاهد تقدّم القراءة بنظرة واحدة.',
+        },
+        signals: [
+          { en: 'Saved titles', ar: 'العناوين المحفوظة' },
+          { en: 'Collection filters', ar: 'فلاتر المجموعة' },
+          { en: 'Unread progress', ar: 'تقدّم غير المقروء' },
+        ],
+        caption: { en: 'Library · saved titles and reading state', ar: 'المكتبة · العناوين المحفوظة وحالة القراءة' },
+      },
+      mangaDetails: {
+        buttonLabel: 'Show the manga Details screen',
+        label: { en: 'DETAILS', ar: 'التفاصيل' },
+        title: { en: 'Every chapter, one tap away.', ar: 'كل فصل على بُعد لمسة.' },
+        description: {
+          en: 'Review a series, follow chapter progress, and download what you want to read offline.',
+          ar: 'راجع تفاصيل السلسلة، وتابع تقدّم الفصول، وحمّل ما تريد قراءته دون إنترنت.',
+        },
+        signals: [
+          { en: 'Series overview', ar: 'نظرة على السلسلة' },
+          { en: 'Chapter list', ar: 'قائمة الفصول' },
+          { en: 'Offline downloads', ar: 'تنزيل دون إنترنت' },
+        ],
+        caption: { en: 'Details · chapters, progress, downloads', ar: 'التفاصيل · الفصول والتقدّم والتنزيل' },
+      },
+      notifications: {
+        buttonLabel: 'Show the Notifications screen',
+        label: { en: 'NOTIFICATIONS', ar: 'الإشعارات' },
+        title: { en: 'New chapters without the noise.', ar: 'فصول جديدة بلا ضوضاء.' },
+        description: {
+          en: 'See meaningful updates for the series you follow and clear what you have already handled.',
+          ar: 'شاهد التحديثات المهمة للسلاسل التي تتابعها وامسح ما انتهيت منه.',
+        },
+        signals: [
+          { en: 'Chapter alerts', ar: 'تنبيهات الفصول' },
+          { en: 'Focused updates', ar: 'تحديثات مركّزة' },
+          { en: 'Easy cleanup', ar: 'تنظيف سهل' },
+        ],
+        caption: { en: 'Notifications · updates from followed series', ar: 'الإشعارات · تحديثات السلاسل المتابَعة' },
+      },
+      settings: {
+        buttonLabel: 'Show the Settings screen',
+        label: { en: 'SETTINGS', ar: 'الإعدادات' },
+        title: { en: 'Make Kira work your way.', ar: 'اجعل كيرا يعمل بطريقتك.' },
+        description: {
+          en: 'Control downloads, privacy, appearance, storage, and sources from one clear place.',
+          ar: 'تحكّم في التنزيل والخصوصية والمظهر والتخزين والمصادر من مكان واضح واحد.',
+        },
+        signals: [
+          { en: 'Theme controls', ar: 'إعدادات المظهر' },
+          { en: 'Privacy options', ar: 'خيارات الخصوصية' },
+          { en: 'Storage tools', ar: 'أدوات التخزين' },
+        ],
+        caption: { en: 'Settings · theme, privacy, storage', ar: 'الإعدادات · المظهر والخصوصية والتخزين' },
+      },
     },
   },
   tutorials: {
@@ -125,7 +201,7 @@ export const homeCopy = {
     sidebarLabel: { en: 'GET STARTED', ar: 'ابدأ هنا' },
     listLabel: { en: 'QUICK GUIDES', ar: 'أدلة سريعة' },
     articlesLabel: { en: 'ARTICLES', ar: 'مقالات' },
-    guideSlugs: ['getting-started', 'discover-manga', 'read-offline', 'personalize-kira'],
+    unavailable: { en: 'Tutorial previews are temporarily unavailable.', ar: 'معاينات الشروحات غير متاحة مؤقتًا.' },
   },
   finalCta: {
     eyebrow: { en: 'YOUR NEXT CHAPTER', ar: 'فصلك التالي' },

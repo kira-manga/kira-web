@@ -1,41 +1,39 @@
 'use client';
 
 import type { Route } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { ArrowIcon, SearchIcon } from '@/components/ui/icons';
 import { LocalizedText } from '@/components/ui/localized-text';
-import { LiveAppScreen, useKiraPreferences } from '@/components/ui/preferences';
-import { media } from '@/content/media';
-import { tutorialCategoryLabels, tutorials, tutorialsPageCopy, type TutorialCategory } from '@/content/tutorials';
+import { useKiraPreferences } from '@/components/ui/preferences';
+import { tutorialsPageCopy } from '@/content/tutorials';
+import type { Tutorial, TutorialCategory } from '@/lib/tutorial-api';
+import { TutorialMediaImage } from './tutorial-media-image';
 
 import styles from './tutorials.module.css';
 
-const filters: Array<'all' | TutorialCategory> = ['all', 'basics', 'discovery', 'reading', 'settings'];
-
-export function TutorialLibrary() {
+export function TutorialLibrary({ tutorials, categories }: { tutorials: Tutorial[]; categories: TutorialCategory[] }) {
   const copy = tutorialsPageCopy.library;
   const { preferences } = useKiraPreferences();
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<'all' | TutorialCategory>('all');
+  const [category, setCategory] = useState<string>('all');
 
   const visibleTutorials = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     return tutorials.filter((tutorial) => {
-      const matchesCategory = category === 'all' || tutorial.category === category;
+      const matchesCategory = category === 'all' || tutorial.category.slug === category;
       const searchable = [
         tutorial.title.en,
         tutorial.title.ar,
         tutorial.summary.en,
         tutorial.summary.ar,
-        tutorialCategoryLabels[tutorial.category].en,
-        tutorialCategoryLabels[tutorial.category].ar,
+        tutorial.category.label.en,
+        tutorial.category.label.ar,
       ].join(' ').toLocaleLowerCase();
       return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
-  }, [category, query]);
+  }, [category, query, tutorials]);
 
   const language = preferences.language;
 
@@ -61,7 +59,7 @@ export function TutorialLibrary() {
 
       <div className={styles.filterBar}>
         <div className={styles.filters} aria-label={copy.categoriesLabel[language]}>
-          {filters.map((filter) => (
+          {['all', ...categories.map((item) => item.slug)].map((filter) => (
             <button
               type="button"
               className={category === filter ? styles.activeFilter : undefined}
@@ -69,7 +67,7 @@ export function TutorialLibrary() {
               onClick={() => setCategory(filter)}
               key={filter}
             >
-              {tutorialCategoryLabels[filter][language]}
+              {filter === 'all' ? copy.allCategory[language] : categories.find((item) => item.slug === filter)?.label[language]}
             </button>
           ))}
         </div>
@@ -83,20 +81,15 @@ export function TutorialLibrary() {
       {visibleTutorials.length ? (
         <div className={styles.tutorialGrid}>
           {visibleTutorials.map((tutorial, index) => {
-            const cover = media.appScreens[tutorial.cover];
             return (
               <Link className={styles.tutorialCard} href={`/tutorials/${tutorial.slug}` as Route} key={tutorial.slug}>
                 <div className={styles.cardMedia}>
-                  {tutorial.cover === 'discover' ? (
-                    <LiveAppScreen />
-                  ) : (
-                    <Image src={cover.src} alt={`${cover.alt.en} — ${cover.alt.ar}`} width={cover.width} height={cover.height} unoptimized />
-                  )}
+                  <TutorialMediaImage media={tutorial.cover} />
                   <span className={styles.cardIndex}>{String(index + 1).padStart(2, '0')}</span>
                   <span className={styles.cardDuration}>{tutorial.duration[language]}</span>
                 </div>
                 <div className={styles.cardBody}>
-                  <p>{tutorialCategoryLabels[tutorial.category][language]}</p>
+                  <p>{tutorial.category.label[language]}</p>
                   <h3>{tutorial.title[language]}</h3>
                   <span>{tutorial.summary[language]}</span>
                   <strong><LocalizedText en={copy.openGuide.en} ar={copy.openGuide.ar} /> <ArrowIcon /></strong>

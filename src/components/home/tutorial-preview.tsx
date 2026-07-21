@@ -4,25 +4,21 @@ import Link from 'next/link';
 import { ArrowIcon, BookIcon, DownloadIcon, SearchIcon, SettingsIcon } from '@/components/ui/icons';
 import { LocalizedText } from '@/components/ui/localized-text';
 import { homeCopy } from '@/content/home';
-import { getTutorial, type TutorialCategory } from '@/content/tutorials';
+import { getTutorials, type TutorialCategory } from '@/lib/tutorial-api';
 
 import styles from './home.module.css';
 
 const tutorialIcons = {
-  basics: BookIcon,
-  discovery: SearchIcon,
-  reading: DownloadIcon,
+  book: BookIcon,
+  search: SearchIcon,
+  download: DownloadIcon,
   settings: SettingsIcon,
-} satisfies Record<TutorialCategory, typeof BookIcon>;
+} satisfies Record<TutorialCategory['iconCode'], typeof BookIcon>;
 
-const previewTutorials = homeCopy.tutorials.guideSlugs.map((slug) => {
-  const tutorial = getTutorial(slug);
-  if (!tutorial) throw new Error(`Unknown homepage tutorial slug: ${slug}`);
-  return tutorial;
-});
-
-export function TutorialPreview() {
+export async function TutorialPreview() {
   const copy = homeCopy.tutorials;
+  const result = await getTutorials({ featured: true });
+  const previewTutorials = result.status === 'ok' ? result.data : [];
 
   return (
     <section className={styles.tutorialSection} id="tutorials" aria-labelledby="tutorials-title">
@@ -48,7 +44,7 @@ export function TutorialPreview() {
             <small>{copy.browserUrl}</small>
           </div>
           <div className={styles.guideBrowserBody}>
-            <aside className={styles.guideSidebar}>
+            {previewTutorials.length ? <><aside className={styles.guideSidebar}>
               <span className={styles.sidebarLogo}>{copy.sidebarMonogram}</span>
               <p><LocalizedText en={copy.sidebarLabel.en} ar={copy.sidebarLabel.ar} /></p>
               {previewTutorials.map((tutorial, index) => (
@@ -61,7 +57,7 @@ export function TutorialPreview() {
                 <span>{previewTutorials.length} <LocalizedText en={copy.articlesLabel.en} ar={copy.articlesLabel.ar} /></span>
               </div>
               {previewTutorials.map((tutorial, index) => {
-                const Icon = tutorialIcons[tutorial.category];
+                const Icon = tutorialIcons[tutorial.category.iconCode];
                 const step = String(index + 1).padStart(2, '0');
                 return (
                   <Link href={`/tutorials/${tutorial.slug}` as Route} className={styles.guideRow} key={tutorial.slug}>
@@ -75,6 +71,7 @@ export function TutorialPreview() {
                 );
               })}
             </div>
+            </> : <div className={styles.guideList}><p><LocalizedText en={copy.unavailable.en} ar={copy.unavailable.ar} /></p></div>}
           </div>
         </div>
       </div>
