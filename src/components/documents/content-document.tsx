@@ -14,7 +14,6 @@ function InlineContent({ content }: { content: RichText }) {
     if (item.kind === 'break') return <br key={key} />;
     if (item.kind === 'strong') return <strong key={key}>{item.text}</strong>;
     if (item.kind === 'code') return <code key={key}>{item.text}</code>;
-    if (item.kind === 'placeholder') return <span className="placeholder" key={key}>{item.text}</span>;
     if (item.href?.startsWith('/')) return <Link href={item.href as Route} key={key}>{item.text}</Link>;
     return <a href={item.href} key={key}>{item.text}</a>;
   });

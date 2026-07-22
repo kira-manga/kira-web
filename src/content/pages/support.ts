@@ -2,7 +2,6 @@ import {
   contentLink,
   inlineCode,
   lineBreak,
-  placeholder,
   strong,
   type DocumentPageContent,
 } from '@/content/pages/types';
@@ -85,14 +84,14 @@ export const supportPageContent = {
       blocks: [
         {
           kind: 'paragraph',
-          content: ['The internal-testing app includes a complaint form. Include the smallest useful description and avoid sensitive information. The complaint system is not approved for public production until authenticated authorization or equivalent strict rules are verified.'],
+          content: ['Kira includes an in-app report form for technical problems, sources, features, and content concerns. Include the smallest useful description and avoid passwords, payment information, identity documents, and unrelated personal information. Reports will be investigated, and appropriate action will be taken when necessary, but a specific outcome cannot be guaranteed.'],
         },
         {
           kind: 'notice',
           warning: true,
           content: [
-            strong('Support email:'), ' ', placeholder('[OWNER TO SUPPLY MONITORED SUPPORT EMAIL]'), lineBreak(),
-            strong('Expected response time:'), ' ', placeholder('[OWNER TO SET — DO NOT PROMISE UNTIL STAFFED]'),
+            strong('Support email:'), ' ', contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com'), lineBreak(),
+            strong('Expected response time:'), ' Within two business days',
           ],
         },
       ],

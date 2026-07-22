@@ -1,5 +1,12 @@
 # Standalone SSR deployment
 
+The `production` GitHub Environment must define the non-sensitive Actions variable
+`ANDROID_APP_SHA256_CERT_FINGERPRINT`. Copy its value from Google Play Console under
+**Protected with Play → Play Store protection → Manage Play app signing → App signing key
+certificate → SHA-256 certificate fingerprint**. Do not use the upload-key certificate. The
+deployment workflow always enables production validation and fails before deployment when the
+variable is absent or malformed.
+
 Build the immutable image with the production Android association values and public API origin:
 
 ```sh

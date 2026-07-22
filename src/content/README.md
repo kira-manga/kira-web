@@ -34,7 +34,7 @@ title: {
 }
 ```
 
-Always update both languages. Help and policy pages are currently English-only and use small helpers such as `strong()`, `contentLink()`, and `placeholder()` to describe formatting without JSX. Do not put JSX or styling in content files; presentation is handled by components.
+Always update both languages. Help and policy pages are currently English-only and use small helpers such as `strong()` and `contentLink()` to describe formatting without JSX. Do not put JSX or styling in content files; presentation is handled by components.
 
 ## Verify changes
 

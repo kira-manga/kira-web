@@ -9,7 +9,6 @@ export interface DocumentMetadata {
 export type InlineToken =
   | { kind: 'strong'; text: string }
   | { kind: 'code'; text: string }
-  | { kind: 'placeholder'; text: string }
   | { kind: 'link'; text: string; href: string }
   | { kind: 'break' };
 
@@ -52,7 +51,6 @@ export interface DocumentPageContent {
 
 export const strong = (text: string): InlineToken => ({ kind: 'strong', text });
 export const inlineCode = (text: string): InlineToken => ({ kind: 'code', text });
-export const placeholder = (text: string): InlineToken => ({ kind: 'placeholder', text });
 export const contentLink = (text: string, href: string): InlineToken => ({ kind: 'link', text, href });
 export const lineBreak = (): InlineToken => ({ kind: 'break' });
 

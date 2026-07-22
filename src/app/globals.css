@@ -604,8 +604,6 @@ html[data-lang="ar"] .documentLanguageNotice {
 }
 
 .metaCard { margin-top: 0; line-height: 1.85; }
-.placeholder { color: var(--warning); font-weight: 750; }
-
 .activationBanner {
   display: flex;
   align-items: center;

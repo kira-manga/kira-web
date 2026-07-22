@@ -42,6 +42,14 @@ const nextConfig = {
       { source: '/:path*', headers: securityHeaders },
       { source: '/assets/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
       { source: '/.well-known/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' }] },
+      {
+        source: '/.well-known/assetlinks.json',
+        headers: [{ key: 'Content-Type', value: 'application/json; charset=utf-8' }],
+      },
+      {
+        source: '/.well-known/apple-app-site-association',
+        headers: [{ key: 'Content-Type', value: 'application/json; charset=utf-8' }],
+      },
       { source: '/whatsnew/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=300, must-revalidate' }] },
     ];
   },

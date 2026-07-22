@@ -28,8 +28,8 @@ jobs:
           push: false
           tags: kira-web:${{ github.sha }}
           build-args: |
-            KIRA_WEB_PRODUCTION=${{ secrets.ANDROID_APP_SHA256_CERT_FINGERPRINT != '' }}
-            ANDROID_APP_SHA256_CERT_FINGERPRINT=${{ secrets.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
+            KIRA_WEB_PRODUCTION=true
+            ANDROID_APP_SHA256_CERT_FINGERPRINT=${{ vars.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
             APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}
             IOS_BUNDLE_ID=${{ vars.IOS_BUNDLE_ID }}
             ANDROID_PACKAGE_NAME=${{ vars.ANDROID_PACKAGE_NAME }}

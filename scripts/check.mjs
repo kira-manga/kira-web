@@ -16,6 +16,55 @@ for (const forbidden of ['getting-started', 'discover-manga', 'read-offline', 'p
   if (tutorialSource.includes(forbidden)) throw new Error(`Static tutorial catalog marker remains: ${forbidden}`);
 }
 
+const policyFiles = [
+  'privacy.ts',
+  'terms.ts',
+  'support.ts',
+  'takedown.ts',
+  'data-deletion.ts',
+];
+const policySources = await Promise.all(policyFiles.map(async (file) => ({
+  file,
+  source: await readFile(path.join(root, 'src/content/pages', file), 'utf8'),
+})));
+const policyCorpus = policySources.map(({ source }) => source).join('\n');
+for (const marker of [
+  'placeholder(',
+  '[OWNER',
+  '[LEGAL',
+  '[PRIVACY',
+  'LEGAL NAME',
+  'MAILING ADDRESS',
+  'GOVERNING LAW',
+  'GOVERNING LAW/FORUM',
+]) {
+  if (policyCorpus.toUpperCase().includes(marker.toUpperCase())) {
+    throw new Error(`Unresolved or removed policy marker remains: ${marker}`);
+  }
+}
+const contactEmail = 'abdelrahmanfahmy.dev@gmail.com';
+for (const { file, source } of policySources) {
+  if (!source.includes(contactEmail)) throw new Error(`${file} is missing the canonical contact email`);
+  const unexpectedEmails = source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)
+    ?.filter((email) => email.toLowerCase() !== contactEmail) ?? [];
+  if (unexpectedEmails.length) throw new Error(`${file} contains a non-canonical contact email`);
+}
+for (const file of ['privacy.ts', 'terms.ts', 'takedown.ts', 'data-deletion.ts']) {
+  const source = policySources.find((entry) => entry.file === file)?.source ?? '';
+  if (!source.includes('July 1, 2026')) throw new Error(`${file} has an inconsistent effective date`);
+}
+for (const marker of [
+  'at least 13 years old',
+  'does not currently provide user accounts',
+  'does not upload them to Kira servers',
+  'retained for 90 days',
+]) {
+  if (!policyCorpus.includes(marker)) throw new Error(`Required policy statement is missing: ${marker}`);
+}
+if (!policyCorpus.includes('Within two business days')) {
+  throw new Error('Support response-time statement is missing');
+}
+
 const apiSource = await readFile(path.join(root, 'src/lib/tutorial-api.ts'), 'utf8');
 for (const marker of ['revalidate: 60', '/api/v1/tutorial-categories', '/api/v1/tutorials', 'status: \'unavailable\'']) {
   if (!apiSource.includes(marker)) throw new Error(`Tutorial API boundary is missing: ${marker}`);

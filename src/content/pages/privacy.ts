@@ -1,4 +1,4 @@
-import { contentLink, placeholder, strong, type DocumentPageContent } from '@/content/pages/types';
+import { contentLink, strong, type DocumentPageContent } from '@/content/pages/types';
 
 export const privacyPageContent = {
   metadata: {
@@ -9,14 +9,13 @@ export const privacyPageContent = {
   hero: {
     eyebrow: 'Draft policy',
     title: 'Privacy policy',
-    intro: 'This draft describes the data flows currently visible in the Kira app repository. It must be reviewed and completed by the owner before public release.',
+    intro: 'This draft explains how Kira handles local app data, technical service data, and information you choose to submit.',
   },
   preface: [{
     kind: 'meta',
     rows: [
-      { label: 'Effective date:', value: [placeholder('[OWNER/LEGAL TO SET]')] },
-      { label: 'Data controller/legal name:', value: [placeholder('[OWNER/LEGAL NAME AND ADDRESS]')] },
-      { label: 'Privacy contact:', value: [placeholder('[PRIVACY EMAIL]')] },
+      { label: 'Effective date:', value: ['July 1, 2026'] },
+      { label: 'Privacy contact:', value: [contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com')] },
     ],
   }],
   sections: [
@@ -28,11 +27,15 @@ export const privacyPageContent = {
       blocks: [
         {
           kind: 'paragraph',
-          content: ['Kira stores app settings, source preferences, library entries, reading history and progress, bookmarks, download queue state, downloaded chapter files, cached images and source configuration data on your device. It also stores a randomly generated app user identifier used by the complaint feature. You choose when to create or import Kira backup ZIP files and exported manga packages.'],
+          content: ['Kira stores app settings, source preferences, library entries, reading history and progress, bookmarks, download state, downloaded chapters, cached images, and source configuration on your device. This local information is not uploaded to Kira servers.'],
         },
         {
           kind: 'paragraph',
-          content: ['Cloudflare challenge cookies and per-source user-agent values may be stored locally so compatible source sites can load. These values can be site- and device-specific.'],
+          content: ['Kira backup ZIP files are created locally and saved to the destination you choose through the device file picker. The backup feature does not upload them to Kira servers. A destination you select, such as a cloud-storage folder, and any operating-system service are governed by their own settings and policies.'],
+        },
+        {
+          kind: 'paragraph',
+          content: ['Cloudflare challenge cookies and per-source user-agent values may also be stored locally so compatible source sites can load. These values can be site- and device-specific.'],
         },
       ],
     },
@@ -49,22 +52,22 @@ export const privacyPageContent = {
     {
       id: 'firebase',
       number: '03',
-      title: 'Firebase services',
+      title: 'Technical services and reports',
       blocks: [
-        { kind: 'paragraph', content: ['The Android and iOS apps are configured to use Google Firebase services:'] },
+        { kind: 'paragraph', content: ['Kira does not currently provide user accounts or profiles. The shipping app does use the following Google Firebase services:'] },
         {
           kind: 'unorderedList',
           items: [
-            [strong('Analytics:'), ' app/device and interaction events used to understand app operation. The iOS build uses Firebase Analytics without advertising-identifier support.'],
-            [strong('Crashlytics:'), ' crash reports, stack traces, device/app diagnostics, and developer breadcrumbs needed to diagnose failures.'],
-            [strong('Cloud Messaging:'), ' app-instance/push tokens and delivery information used for notifications.'],
-            [strong('In-App Messaging:'), ' retrieves and displays campaigns configured in Firebase.'],
-            [strong('Firestore complaints:'), ' complaint text, subject, type, status, metadata supplied by the app, creation time, and the app-generated user identifier.'],
+            [strong('Crashlytics:'), ' crash reports, stack traces, app and device diagnostics, installation identifiers, session information, and limited diagnostic breadcrumbs when a crash or recorded technical failure occurs. This information is used to diagnose problems, fix crashes, and improve stability and performance.'],
+            [strong('Analytics:'), ' automatic app-measurement events and the Android app-open and manga-open events. A manga-open event can include the source identifier, manga title, and originating screen. Advertising-ID collection and ad-personalization signals are disabled in the Android configuration, and the iOS app uses the Analytics product without advertising-identifier support.'],
+            [strong('Cloud Messaging:'), ' app-instance and push tokens plus delivery information used to provide notifications.'],
+            [strong('In-App Messaging:'), ' app-instance and campaign interaction information needed to retrieve and display configured in-app messages.'],
+            [strong('Firestore reports:'), ' when you voluntarily submit a report, Kira sends its type, subject, text, status, submission time, an app/device-generated identifier, and technical device/app metadata. Reports can be listed, updated, or deleted through supported in-app controls.'],
           ],
         },
         {
           kind: 'paragraph',
-          content: ["Firebase processing is subject to Google's applicable service terms and privacy documentation. Kira does not include AdMob, advertising ID permission, or an ad display surface in this release."],
+          content: ["Firebase processing is subject to Google's applicable service terms and ", contentLink('privacy documentation', 'https://firebase.google.com/support/privacy/'), '. Kira does not include an advertising SDK or ad display surface in this release.'],
         },
       ],
     },
@@ -82,7 +85,7 @@ export const privacyPageContent = {
       title: 'Why data is used',
       blocks: [{
         kind: 'paragraph',
-        content: ['The repository shows these purposes: provide reading/library/download/backup features; remember preferences and reading state; deliver notifications; diagnose crashes; measure app operation; display configured in-app messages; and submit, list, update, or delete complaints. The lawful bases and jurisdiction-specific wording must be supplied by the owner or legal reviewer: ', placeholder('[LEGAL REVIEW REQUIRED]'), '.'],
+        content: ['Local data supports reading, library, download, and backup features. Technical service data is used to deliver notifications and in-app messages, measure app operation, diagnose technical problems, fix crashes, and improve stability and performance. Information submitted in a report is used to investigate the report and take appropriate action when necessary.'],
       }],
     },
     {
@@ -92,11 +95,15 @@ export const privacyPageContent = {
       blocks: [
         {
           kind: 'paragraph',
-          content: ['Local app data remains until you delete it through app/platform controls, clear app data, or uninstall the app, subject to device backups and any exported files you keep. No verified production retention period for Firebase Analytics, Crashlytics, Messaging, In-App Messaging, or complaint documents is committed in the repository. The owner must configure and disclose those periods: ', placeholder('[OWNER TO CONFIRM FIREBASE RETENTION]'), '.'],
+          content: ['Local app data remains until you delete it through app or platform controls, clear app data, or uninstall Kira. Exported backup files remain wherever you saved or copied them until you delete those copies.'],
         },
         {
           kind: 'paragraph',
-          content: ['See ', contentLink('data deletion instructions', '/data-deletion'), '. Complaint deletion and identity/authorization are still under production security review.'],
+          content: ['Firebase states that Crashlytics keeps crash stack traces, related diagnostic data, and associated identifiers for 90 days before beginning removal from live and backup systems. Other Firebase data follows the configured provider settings and applicable Firebase retention processes.'],
+        },
+        {
+          kind: 'paragraph',
+          content: ['Submitted reports remain in Firestore until they are deleted through available in-app controls or handled through a supported request, subject to provider backup and security processes. See the ', contentLink('data deletion instructions', '/data-deletion'), ' or contact ', contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com'), '.'],
         },
       ],
     },
@@ -104,14 +111,14 @@ export const privacyPageContent = {
       title: 'Sharing, sale, and transfers',
       blocks: [{
         kind: 'paragraph',
-        content: ['Data is sent to selected third-party manga sources and to the Firebase services described above. The repository does not show advertising UI, an ad-serving SDK, or a sale-of-data feature. Android Analytics is configured not to collect the advertising ID and defaults ad personalization off. This statement is not a legal conclusion about “sale” or “sharing” under any jurisdiction; the owner must obtain the required review and complete any international-transfer language: ', placeholder('[LEGAL REVIEW REQUIRED]'), '.'],
+        content: ['Data is sent to selected third-party manga sources and to the Firebase services described above. The application contains no sale-of-data feature, advertising UI, or ad-serving SDK. Service providers may process information in locations where they operate under their own terms and safeguards.'],
       }],
     },
     {
       title: 'Children and adult content',
       blocks: [{
         kind: 'paragraph',
-        content: ['Kira contains adult-content controls, but the repository does not establish a verified minimum user age, parental-consent process, or child-directed service status. Those product and legal decisions must be completed before public distribution: ', placeholder('[OWNER/LEGAL DECISION REQUIRED]'), '.'],
+        content: ['You must be at least 13 years old to use Kira. Kira uses source-specific genre and metadata blacklists and blocks titles classified as adult content from opening. Adult-oriented content is not intended to be displayed, but classification depends on information supplied by third-party sources, so the filter cannot guarantee that every inappropriate item will always be identified. Kira does not currently provide a parental-consent procedure.'],
       }],
     },
     {
@@ -120,7 +127,16 @@ export const privacyPageContent = {
       title: 'Your choices and rights',
       blocks: [{
         kind: 'paragraph',
-        content: ['You can manage permissions in system settings, remove local app data, choose which source to contact, and decide whether to submit a complaint or export files. Any statutory access, correction, objection, portability, or erasure rights depend on your location and the final controller details. Contact ', placeholder('[PRIVACY EMAIL]'), ' once supplied.'],
+        content: ['You can manage permissions in system settings, remove local app data, choose which source to contact, decide whether to submit a report, and decide whether to export a backup. For privacy questions or a request concerning identifiable technical or report data, contact ', contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com'), '. Some provider records may not be linkable to you without an account or a usable installation identifier.'],
+      }],
+    },
+    {
+      id: 'accounts',
+      number: '07',
+      title: 'Accounts',
+      blocks: [{
+        kind: 'paragraph',
+        content: ['Kira does not currently offer user accounts or account registration, so there is no registered Kira account to delete. If account functionality is introduced, this policy and the data-deletion page will be updated with a direct deletion method before that functionality is made available.'],
       }],
     },
     {

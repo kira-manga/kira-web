@@ -1,4 +1,4 @@
-import { contentLink, placeholder, type DocumentPageContent } from '@/content/pages/types';
+import { contentLink, type DocumentPageContent } from '@/content/pages/types';
 
 export const termsPageContent = {
   metadata: {
@@ -9,14 +9,13 @@ export const termsPageContent = {
   hero: {
     eyebrow: 'Draft terms',
     title: 'Terms of service',
-    intro: 'These terms are a product draft, not final legal advice. Owner identity, jurisdiction, age rules, and mandatory consumer terms remain open.',
+    intro: 'These draft terms describe the current Kira application and should receive final legal review before publication.',
   },
   preface: [{
     kind: 'meta',
     rows: [
-      { label: 'Effective date:', value: [placeholder('[OWNER/LEGAL TO SET]')] },
-      { label: 'Service provider:', value: [placeholder('[LEGAL NAME, ADDRESS, AND CONTACT]')] },
-      { label: 'Governing law/forum:', value: [placeholder('[LEGAL REVIEW REQUIRED]')] },
+      { label: 'Effective date:', value: ['July 1, 2026'] },
+      { label: 'Contact:', value: [contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com')] },
     ],
   }],
   sections: [
@@ -26,7 +25,7 @@ export const termsPageContent = {
       title: 'Using Kira',
       blocks: [{
         kind: 'paragraph',
-        content: ['Kira is an Android and iOS manga reader with library, reading, download, backup, and source-management tools. You are responsible for using the app and third-party sources lawfully, respecting applicable rights, and following the terms of sites you choose to access.'],
+        content: ['Kira is an Android and iOS manga reader with library, reading, download, backup, and source-management tools. You must be at least 13 years old to use Kira. You are responsible for using the app and third-party sources lawfully, respecting applicable rights, and following the terms of sites you choose to access.'],
       }],
     },
     {
@@ -71,14 +70,15 @@ export const termsPageContent = {
       tocLabel: 'Safety',
       blocks: [{
         kind: 'paragraph',
-        content: ['Some third-party sources may contain mature material. Kira includes content controls, but no filter can guarantee every external item is classified correctly. The final minimum-age and parental-consent requirements are unresolved: ', placeholder('[OWNER/LEGAL DECISION REQUIRED]'), '.'],
+        content: ['Kira uses source-specific genre and metadata blacklists and blocks titles classified as adult content from opening. Adult-oriented content is not intended to be displayed, but third-party metadata may be incomplete or inaccurate, so the filter cannot guarantee that every inappropriate item will always be identified. Kira does not currently provide a parental-consent procedure.'],
       }],
     },
     {
-      title: 'Feedback and complaints',
+      id: 'reports',
+      title: 'Reports and complaints',
       blocks: [{
         kind: 'paragraph',
-        content: ['You may submit a complaint through the internal-testing feature. Do not include passwords, payment information, identity documents, or other unnecessary sensitive data. Complaint authentication and authorization must be secured or the feature disabled before public release; see the ', contentLink('privacy policy', '/privacy'), '.'],
+        content: ['You may report technical problems, sources, or content through the application. Reports will be investigated, and appropriate action will be taken when necessary, but submitting a report does not guarantee a particular outcome. Do not include passwords, payment information, identity documents, or unrelated sensitive information. See the ', contentLink('privacy policy', '/privacy'), ' for the data included with a report.'],
       }],
     },
     {
@@ -95,14 +95,22 @@ export const termsPageContent = {
       tocLabel: 'Disclaimers',
       blocks: [{
         kind: 'paragraph',
-        content: ['No warranty disclaimer or liability cap is finalized in this draft. Applicable consumer protections cannot be waived where the law prohibits it. The owner must obtain jurisdiction-specific wording before publication: ', placeholder('[LEGAL REVIEW REQUIRED — DO NOT COPY A GENERIC LIABILITY CLAUSE]'), '.'],
+        content: ['Kira and third-party sources can be unavailable, delayed, incomplete, or incompatible after a source changes. Keep independent copies of important backups and verify exported files before removing the original data. These draft terms do not limit rights that cannot lawfully be limited and should receive final legal review before publication.'],
       }],
     },
     {
-      title: 'Termination and contact',
+      id: 'accounts',
+      title: 'Accounts and access',
       blocks: [{
         kind: 'paragraph',
-        content: ['You may stop using Kira and remove local data at any time. Any operator suspension or termination right, notice method, dispute process, and official contact must be supplied by the owner: ', placeholder('[OWNER/LEGAL INPUT REQUIRED]'), '.'],
+        content: ['Kira does not currently provide account registration, so there is no user account to suspend or terminate. You may stop using Kira and remove local data at any time. Access to a source or feature may be limited when necessary to address security, abuse, technical, or valid copyright concerns. Appropriate account rules will be introduced if accounts are added in the future.'],
+      }],
+    },
+    {
+      title: 'Contact',
+      blocks: [{
+        kind: 'paragraph',
+        content: ['For support, privacy, legal, copyright, or general questions, contact ', contentLink('abdelrahmanfahmy.dev@gmail.com', 'mailto:abdelrahmanfahmy.dev@gmail.com'), '. Copyright complaints should include the information described in the ', contentLink('copyright complaint process', '/takedown'), '.'],
       }],
     },
   ],
