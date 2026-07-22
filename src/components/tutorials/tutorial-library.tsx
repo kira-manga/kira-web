@@ -89,10 +89,16 @@ export function TutorialLibrary({ tutorials, categories }: { tutorials: Tutorial
                   <span className={styles.cardDuration}>{tutorial.duration[language]}</span>
                 </div>
                 <div className={styles.cardBody}>
-                  <p>{tutorial.category.label[language]}</p>
+                  <div className={styles.cardTopline}>
+                    <p>{tutorial.category.label[language]}</p>
+                    <span>{tutorial.level[language]}</span>
+                  </div>
                   <h3>{tutorial.title[language]}</h3>
-                  <span>{tutorial.summary[language]}</span>
-                  <strong><LocalizedText en={copy.openGuide.en} ar={copy.openGuide.ar} /> <ArrowIcon /></strong>
+                  <p className={styles.cardSummary}>{tutorial.summary[language]}</p>
+                  <div className={styles.cardFooter}>
+                    <strong><LocalizedText en={copy.openGuide.en} ar={copy.openGuide.ar} /> <ArrowIcon /></strong>
+                    <small>{tutorial.steps.length} {copy.steps[language]}</small>
+                  </div>
                 </div>
               </Link>
             );

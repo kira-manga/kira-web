@@ -32,6 +32,7 @@ export const tutorialsPageCopy = {
       en: { one: 'guide', many: 'guides' },
       ar: { one: 'شرح', many: 'شروحات' },
     },
+    steps: { en: 'steps', ar: 'خطوات' },
     openGuide: { en: 'Open guide', ar: 'افتح الشرح' },
     emptyTitle: { en: 'No guide matches that search.', ar: 'لا يوجد شرح يطابق هذا البحث.' },
     emptyDescription: { en: 'Try a shorter phrase or choose All guides.', ar: 'جرّب عبارة أقصر أو اختر «كل الشروحات».' },
