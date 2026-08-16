@@ -3,13 +3,13 @@ import { contentLink, strong, type DocumentPageContent } from '@/content/pages/t
 export const takedownPageContent = {
   metadata: {
     title: 'Copyright and takedown',
-    description: 'Draft copyright complaint and content-review process for Kira Manga.',
+    description: 'Copyright complaint and content-review process for Kira Manga.',
     canonical: '/takedown',
   },
   hero: {
-    eyebrow: 'Draft policy',
+    eyebrow: 'Copyright policy',
     title: 'Copyright complaints',
-    intro: 'Kira does not claim ownership of third-party manga. This draft explains how copyright owners and authorized representatives can request a source or item review.',
+    intro: 'Kira does not claim ownership of third-party manga. This page explains how copyright owners and authorized representatives can request a source or item review.',
   },
   preface: [{
     kind: 'meta',

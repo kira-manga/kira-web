@@ -37,6 +37,7 @@ for (const marker of [
   'MAILING ADDRESS',
   'GOVERNING LAW',
   'GOVERNING LAW/FORUM',
+  'DRAFT',
 ]) {
   if (policyCorpus.toUpperCase().includes(marker.toUpperCase())) {
     throw new Error(`Unresolved or removed policy marker remains: ${marker}`);

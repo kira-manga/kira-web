@@ -3,13 +3,13 @@ import { contentLink, type DocumentPageContent } from '@/content/pages/types';
 export const termsPageContent = {
   metadata: {
     title: 'Terms of service',
-    description: 'Draft terms of service for Kira Manga.',
+    description: 'Terms of service for Kira Manga.',
     canonical: '/terms',
   },
   hero: {
-    eyebrow: 'Draft terms',
+    eyebrow: 'Terms',
     title: 'Terms of service',
-    intro: 'These draft terms describe the current Kira application and should receive final legal review before publication.',
+    intro: 'These terms describe the current Kira application and the rules that apply when you use it.',
   },
   preface: [{
     kind: 'meta',
@@ -95,7 +95,7 @@ export const termsPageContent = {
       tocLabel: 'Disclaimers',
       blocks: [{
         kind: 'paragraph',
-        content: ['Kira and third-party sources can be unavailable, delayed, incomplete, or incompatible after a source changes. Keep independent copies of important backups and verify exported files before removing the original data. These draft terms do not limit rights that cannot lawfully be limited and should receive final legal review before publication.'],
+        content: ['Kira and third-party sources can be unavailable, delayed, incomplete, or incompatible after a source changes. Keep independent copies of important backups and verify exported files before removing the original data. These terms do not limit rights that cannot lawfully be limited.'],
       }],
     },
     {

@@ -3,13 +3,13 @@ import { contentLink, strong, type DocumentPageContent } from '@/content/pages/t
 export const privacyPageContent = {
   metadata: {
     title: 'Privacy policy',
-    description: 'Draft privacy policy for the Kira Manga Android and iOS apps.',
+    description: 'Privacy policy for the Kira Manga Android and iOS apps.',
     canonical: '/privacy',
   },
   hero: {
-    eyebrow: 'Draft policy',
+    eyebrow: 'Privacy',
     title: 'Privacy policy',
-    intro: 'This draft explains how Kira handles local app data, technical service data, and information you choose to submit.',
+    intro: 'This policy explains how Kira handles local app data, technical service data, and information you choose to submit.',
   },
   preface: [{
     kind: 'meta',
