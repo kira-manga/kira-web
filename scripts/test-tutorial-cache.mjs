@@ -12,7 +12,10 @@ import ts from 'typescript';
 import { assertTutorialRuntimeBuild } from './assert-tutorial-runtime-build.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-assert.ok(process.argv.slice(2).every((arg) => arg === '--keys-only'), 'Only --keys-only is supported');
+const args = process.argv.slice(2);
+assert.ok(args.length <= 1 && args.every((arg) => ['--keys-only', '--transport-only'].includes(arg)),
+  'Use either --keys-only, --transport-only, or no flag');
+const transportOnly = args.includes('--transport-only');
 
 // Test the actual pure key builder without a Next mock, a new runner, or requiring
 // Node's experimental TypeScript support. TypeScript is already a build dependency.
@@ -43,7 +46,7 @@ assert.equal(originsA.join(','), originsB.join(','), 'Fixture must collide under
 assert.notEqual(key(...originsA, list), key(...originsB, list));
 console.log('PASS cache keys: kind/version/origins/slug/query, deterministic tuple and delimiter isolation.');
 
-if (!process.argv.includes('--keys-only')) await productionRegression();
+if (!args.includes('--keys-only')) await productionRegression();
 
 async function productionRegression() {
   await assertTutorialRuntimeBuild(root);
@@ -59,6 +62,9 @@ async function productionRegression() {
   process.once('SIGTERM', stop);
   const deadline = setTimeout(() => abort.abort(new Error('Tutorial cache regression exceeded 240s')), 240_000);
   const bodyMarker = 'KIRALEAK';
+  const transportTimeoutMs = 250;
+  const transportMaximumBytes = 16_384;
+  const transportFailures = ['timeout', 'oversize'];
   const api = {
     full: '/api/v1/tutorials', featured: '/api/v1/tutorials?featured=true',
     categories: '/api/v1/tutorial-categories', detail: '/api/v1/tutorials/steady-guide',
@@ -74,6 +80,8 @@ async function productionRegression() {
   let revision = 'A';
   const overrides = new Map();
   const upstreamRequests = [];
+  const socketRequests = new Map();
+  let fixtureTeardown = false;
   let server;
   let serverExit;
   let serverLogs = '';
@@ -103,12 +111,25 @@ async function productionRegression() {
   }
   const upstream = createServer((request, response) => {
     const currentMode = overrides.get(request.url) ?? mode;
-    const record = { url: request.url, mode: currentMode, completed: false };
+    const record = { url: request.url, mode: currentMode, completed: false, finished: false,
+      responseClosed: false, closedBeforeFinish: false, socketClosed: false };
     upstreamRequests.push(record);
-    response.once('finish', () => { record.status = response.statusCode; record.completed = true; });
-    response.once('close', () => { record.completed = true; });
+    socketRequests.get(request.socket).push(record);
+    response.on('error', () => {}); // Deliberate abort fixtures must still reach owned cleanup.
+    response.once('finish', () => { record.status = response.statusCode; record.completed = true; record.finished = true; });
+    response.once('close', () => {
+      record.completed = true;
+      record.responseClosed = true;
+      record.closedBeforeFinish = !response.writableFinished;
+    });
     if (currentMode === 'network') { response.destroy(); return; }
+    if (currentMode === 'timeout') return; // No headers/EOF: only the owned client deadline may close it.
     response.setHeader('Content-Type', 'application/json');
+    if (currentMode === 'oversize') {
+      response.flushHeaders(); // Actual chunked bytes, not a Content-Length-only refusal.
+      response.write(bodyMarker + 'x'.repeat(transportMaximumBytes + 1 - bodyMarker.length));
+      return; // No normal finish: require attributable client abort before fixture teardown.
+    }
     if (currentMode === 'http' || currentMode === 'not-found') {
       response.statusCode = currentMode === 'http' ? 503 : 404;
       response.end(bodyMarker);
@@ -126,6 +147,14 @@ async function productionRegression() {
     }
     if (currentMode === 'empty') data = [];
     response.end(JSON.stringify(data));
+  });
+  upstream.on('connection', (socket) => {
+    const requests = [];
+    socketRequests.set(socket, requests);
+    socket.once('close', () => {
+      for (const request of requests) request.socketClosed = true;
+      socketRequests.delete(socket);
+    });
   });
 
   async function until(label, assertion) {
@@ -215,6 +244,15 @@ async function productionRegression() {
     assert.ok(sitemapRoutes(result.sitemap.text).includes(`/tutorials/catalog-${value.toLowerCase()}`));
     assertDetail(result.detail, `CACHE DETAIL ${value}`);
   }
+  function assertEmptyCollections(result) {
+    for (const name of ['home', 'library', 'sitemap']) assert.equal(result[name].status, 200);
+    assert.ok(result.library.text.includes('No guide matches that search.'));
+    assert.ok(!result.library.text.includes(unavailable.library), 'Valid empty is not an unavailable response');
+    assert.deepEqual(sitemapRoutes(result.sitemap.text), [...staticRoutes].sort());
+    assert.ok(!preview(result.home.text).includes('CACHE FEATURED'));
+    // The unchanged home preview shares its empty/unavailable copy. Typed persisted empties,
+    // the library and sitemap distinguish success; the home must not retain old featured cards.
+  }
   async function cacheSnapshot() {
     // Read-only observation of Next 16.2.10's real persistent FETCH entries. Never
     // edit timestamps/entries or replace the cache implementation to accelerate tests.
@@ -272,15 +310,30 @@ async function productionRegression() {
     }
     return groups;
   }
+  const peerAborted = (request) => !request.finished && request.closedBeforeFinish && request.responseClosed && request.socketClosed;
+  async function transportCleanup(start, kind, urls) {
+    let previousCount = -1;
+    await until(`${kind} peers closed before teardown`, () => {
+      assert.equal(fixtureTeardown, false, 'Teardown must not supply the cancellation evidence');
+      const requests = upstreamRequests.slice(start).filter((request) => request.mode === kind && (!urls || urls.includes(request.url)));
+      assert.ok(requests.length > 0, 'The fixture must observe the failed operations');
+      if (urls) for (const url of urls) assert.ok(requests.some((request) => request.url === url), 'Every selected endpoint must be observed');
+      assert.ok(requests.every(peerAborted), 'Every observed failed operation must close its unfinished response AND socket');
+      // Recheck after a quiet observation interval; do not assume one metadata/page request per key.
+      const stable = previousCount === requests.length;
+      previousCount = requests.length;
+      assert.ok(stable, 'Wait for settled operation coverage');
+    });
+  }
   async function failedRefreshes(start, logStart, kind, groups, families = Object.keys(api)) {
     let lastDiagnostic;
     await until(`completed ${kind} refreshes`, async () => {
       const failures = [...serverLogs.slice(logStart).matchAll(
-        /revalidating cache with key:([\s\S]*?)-\[\]\s+[\s\S]*?Tutorial API unavailable \((network|http|json|schema)\)/g,
+        /revalidating cache with key:([\s\S]*?)-\[\]\s+[\s\S]*?Tutorial API unavailable \((network|http|json|schema|timeout|oversize)\)/g,
       )];
       const coverage = families.map((family) => ({ family, expected: groups[family].length,
         completed: upstreamRequests.slice(start).filter((request) => request.url === api[family]
-          && request.mode === kind && request.completed).length,
+          && request.mode === kind && (transportFailures.includes(kind) ? peerAborted(request) : request.completed)).length,
         // Next logs this path only for stale hits. Preserve the complete callback/tuple/args identity,
         // not occurrence counts: separate compiled contexts may have separate physical keys.
         invocations: [...new Set(failures.filter((match) => match[2] === kind && match[1].includes(JSON.stringify(api[family])))
@@ -296,9 +349,12 @@ async function productionRegression() {
       }
       assert.ok(!serverLogs.includes(bodyMarker), 'Raw JSON/schema response content leaked into server logs');
     });
+    if (transportFailures.includes(kind)) await transportCleanup(start, kind, families.map((family) => api[family]));
   }
 
   try {
+    if (transportOnly) assert.ok(Buffer.byteLength(JSON.stringify(payload(new URL(api.full, 'http://fixture.test'))))
+      < transportMaximumBytes, 'The largest healthy fixture must fit the transport cap');
     const standalone = path.join(root, '.next/standalone');
     await cp(standalone, runtime, { recursive: true,
       filter: (source) => source !== path.join(standalone, '.next/cache') });
@@ -314,6 +370,8 @@ async function productionRegression() {
     server = spawn(process.execPath, ['server.js'], { cwd: runtime, env: {
       ...process.env, NODE_ENV: 'production', HOSTNAME: '127.0.0.1', PORT: String(port),
       KIRA_TUTORIAL_API_URL: upstreamOrigin, NEXT_TELEMETRY_DISABLED: '1',
+      ...(transportOnly ? { KIRA_TUTORIAL_TIMEOUT_MS: String(transportTimeoutMs),
+        KIRA_TUTORIAL_MAX_RESPONSE_BYTES: String(transportMaximumBytes) } : {}),
     }, stdio: ['ignore', 'pipe', 'pipe'] });
     server.once('exit', (code, signal) => { serverExit = `${code}/${signal}`; });
     server.once('error', (error) => { serverExit = error.message; });
@@ -322,10 +380,12 @@ async function productionRegression() {
     server.stderr.on('data', capture);
     await until('standalone startup', async () => assert.equal((await page('/robots.txt')).status, 200));
 
-    for (const failure of ['network', 'http', 'json', 'schema', 'collection404']) {
+    const coldFailures = transportOnly ? transportFailures : ['network', 'http', 'json', 'schema', 'collection404'];
+    for (const failure of coldFailures) {
       mode = failure === 'collection404' ? 'http' : failure;
       if (failure === 'collection404') for (const endpoint of [api.full, api.featured, api.categories]) overrides.set(endpoint, 'not-found');
-      const start = serverLogs.length;
+      const logStart = serverLogs.length;
+      const requestStart = upstreamRequests.length;
       const result = await views();
       for (const name of ['home', 'library', 'detail']) {
         assert.equal(result[name].status, 200);
@@ -335,11 +395,14 @@ async function productionRegression() {
       assert.equal(result.sitemap.status, 200);
       assert.deepEqual(sitemapRoutes(result.sitemap.text), [...staticRoutes].sort());
       assert.equal((await cacheSnapshot()).size, 0, 'Cold failures, including collection404, must not seed cache');
-      assert.ok(serverLogs.slice(start).includes(`Tutorial API unavailable (${mode})`));
+      assert.ok(serverLogs.slice(logStart).includes(`Tutorial API unavailable (${mode})`));
       assert.ok(!serverLogs.includes(bodyMarker), 'Cold failure logged response content');
+      if (transportOnly) await transportCleanup(requestStart, mode, [api.full, api.featured, api.categories, api.detail]);
       overrides.clear();
     }
-    console.log('PASS cold network/503/JSON/schema/collection404: explicit fallback, no poisoned cache or raw-body logs.');
+    console.log(transportOnly
+      ? 'PASS cold timeout/oversize: explicit fallback, no poisoned cache/raw-body logs, unfinished peers closed.'
+      : 'PASS cold network/503/JSON/schema/collection404: explicit fallback, no poisoned cache or raw-body logs.');
 
     mode = 'ok';
     const warm = await views(true); // Same failed keys recover immediately, without any TTL wait.
@@ -376,9 +439,30 @@ async function productionRegression() {
     console.log('PASS immediate cold recovery, distinct full/featured/category fixtures, and authoritative cold detail404.');
     console.log(`PASS cold detail404 HTTP/noindex: ${coldNegatives.size} attributable negative keys; all ${positive.size} positive keys unchanged.`);
 
-    console.log('Waiting one real 61s expiry shared by all four failed refresh modes.');
+    if (transportOnly) {
+      const unseen = ['transport-unseen-one', 'transport-unseen-two', 'transport-unseen-three'];
+      const endpoints = unseen.map((slug) => `${api.full}/${slug}`);
+      for (const endpoint of endpoints) overrides.set(endpoint, 'timeout');
+      const start = upstreamRequests.length;
+      const [healthy, ...unavailableDetails] = await Promise.all([
+        views(), ...unseen.map((slug) => page(`/tutorials/${slug}/`)),
+      ]);
+      assertAvailable(healthy, 'A');
+      for (const result of unavailableDetails) {
+        assert.equal(result.status, 200);
+        assert.ok(result.text.includes(unavailable.detail));
+        assert.ok(result.text.includes('<main id="main-content">'));
+      }
+      await transportCleanup(start, 'timeout', endpoints);
+      assert.deepEqual(await cacheSnapshot(), initial, 'Concurrent unseen failures must not add entries or poison accepted data');
+      overrides.clear();
+      console.log('PASS concurrent unseen-slug timeouts: all observed peers closed; cached A pages/metadata and persisted entries intact.');
+    }
+
+    const staleFailures = transportOnly ? transportFailures : ['network', 'http', 'json', 'schema'];
+    console.log(`Waiting one real 61s expiry shared by ${staleFailures.join('/')} refreshes.`);
     await delay(61_000, undefined, { signal: abort.signal });
-    for (const failure of ['network', 'http', 'json', 'schema']) {
+    for (const failure of staleFailures) {
       mode = failure;
       const start = upstreamRequests.length;
       const logStart = serverLogs.length;
@@ -399,6 +483,8 @@ async function productionRegression() {
     mode = 'ok';
     revision = 'B';
     overrides.set(api.archive, 'not-found');
+    // The narrow mode shares this expiry for successful empties as well as B/detail404 recovery.
+    if (transportOnly) for (const endpoint of [api.full, api.featured]) overrides.set(endpoint, 'empty');
     await views(true); // First stale response is permitted to show A.
     let lastRecoveryDiagnostic;
     const acceptedB = await until('B replacements and authoritative archive404 at every original family key', async () => {
@@ -411,17 +497,32 @@ async function productionRegression() {
         assert.equal(snapshot.get(detailKey).data.title.en, 'CACHE DETAIL B');
         assert.equal(snapshot.get(detailKey).data.revision, 2);
       }
-      for (const featuredKey of familyKeys.featured) assert.equal(snapshot.get(featuredKey).data[0].title.en, 'CACHE FEATURED B');
+      for (const featuredKey of familyKeys.featured) {
+        if (transportOnly) assert.deepEqual(snapshot.get(featuredKey), { status: 'ok', data: [] });
+        else assert.equal(snapshot.get(featuredKey).data[0].title.en, 'CACHE FEATURED B');
+      }
       for (const categoryKey of familyKeys.categories) assert.equal(snapshot.get(categoryKey).data[0].label.en, 'CACHE CATEGORY B');
-      for (const fullKey of familyKeys.full) assert.ok(snapshot.get(fullKey).data.some((item) => item.slug === 'catalog-b'));
+      for (const fullKey of familyKeys.full) {
+        if (transportOnly) assert.deepEqual(snapshot.get(fullKey), { status: 'ok', data: [] });
+        else assert.ok(snapshot.get(fullKey).data.some((item) => item.slug === 'catalog-b'));
+      }
       for (const archiveKey of familyKeys.archive) assert.deepEqual(snapshot.get(archiveKey), { status: 'not-found' });
       for (const [cacheKey, value] of coldNegatives) assert.deepEqual(snapshot.get(cacheKey), value);
       return snapshot;
     });
     const recovered = await views(true);
-    assertAvailable(recovered, 'B');
+    if (transportOnly) {
+      assertDetail(recovered.detail, 'CACHE DETAIL B');
+      assertEmptyCollections(recovered);
+    } else assertAvailable(recovered, 'B');
     assert.ok(!sitemapRoutes(recovered.sitemap.text).includes('/tutorials/catalog-a'));
     assertNotFound(recovered.archive);
+    if (transportOnly) {
+      assert.ok(!serverLogs.includes(bodyMarker));
+      console.log('PASS same-key A→B detail/metadata/category, successful empty collections, and completed A→404 archive replacement.');
+      console.log(`PASS transport-only production cache regression: one build/expiry reused; ${upstreamRequests.length} fixture requests.`);
+      return;
+    }
     console.log('PASS same-key A→B detail/metadata and catalog/home recovery; completed A→404 archive replacement.');
 
     // Successful replacements refresh their TTL. One second shared interval is
@@ -451,11 +552,7 @@ async function productionRegression() {
       for (const categoryKey of familyKeys.categories) assert.deepEqual(snapshot.get(categoryKey), acceptedB.get(categoryKey));
     });
     const empty = await views(true);
-    assert.equal(empty.library.status, 200);
-    assert.ok(empty.library.text.includes('No guide matches that search.'));
-    assert.ok(!empty.library.text.includes(unavailable.library), 'Valid empty is not an unavailable response');
-    assert.deepEqual(sitemapRoutes(empty.sitemap.text), [...staticRoutes].sort());
-    assert.ok(!preview(empty.home.text).includes('CACHE FEATURED'));
+    assertEmptyCollections(empty);
     assertNotFound(empty.detail);
     assertNotFound(empty.archive);
     assert.ok(!serverLogs.includes(bodyMarker));
@@ -465,6 +562,7 @@ async function productionRegression() {
     console.error('Standalone output (last 6000 characters):\n', serverLogs.slice(-6000));
     throw error;
   } finally {
+    fixtureTeardown = true;
     clearTimeout(deadline);
     process.removeListener('SIGINT', stop);
     process.removeListener('SIGTERM', stop);

@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 import { connection } from 'next/server';
 
 import type { LocalizedCopy } from '@/content/types';
+import { fetchTutorialJson, TutorialTransportFailure, type TutorialTransportFailureKind } from './server-tutorial-transport';
 import { tutorialCacheKey, tutorialRequestPath, type TutorialRequest } from './tutorial-cache-key';
 
 export interface TutorialCategory {
@@ -78,7 +79,7 @@ export async function getTutorial(slug: string): Promise<TutorialFetchResult<Tut
   return request({ kind: 'tutorial', slug }, tutorial);
 }
 
-type TutorialFailureKind = 'network' | 'http' | 'json' | 'schema';
+type TutorialFailureKind = TutorialTransportFailureKind | 'schema';
 
 class TutorialApiFailure extends Error {
   constructor(kind: TutorialFailureKind) {
@@ -90,24 +91,17 @@ class TutorialApiFailure extends Error {
 async function fetchValidated<T>(resource: TutorialRequest, validate: (value: unknown) => T): Promise<CachedTutorialResult<T>> {
   let failureKind: TutorialFailureKind = 'network';
   try {
-    // Do not let a raw status-200 response enter the fetch cache before validation.
-    const response = await fetch(`${internalApiUrl}${tutorialRequestPath(resource)}`, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
+    // Bounded no-store transport: no raw response enters the cache before validation.
+    const response = await fetchTutorialJson(`${internalApiUrl}${tutorialRequestPath(resource)}`, resource.kind === 'tutorial');
     // An authoritative archive replaces a positive cache entry. Throwing here would
     // preserve the old tutorial on every refresh, potentially indefinitely.
-    if (resource.kind === 'tutorial' && response.status === 404) return { status: 'not-found' };
-    failureKind = 'http';
-    if (!response.ok) throw new TutorialApiFailure(failureKind);
-    failureKind = 'json';
-    const body: unknown = await response.json();
+    if (response.status === 'not-found') return response;
     failureKind = 'schema';
-    return { status: 'ok', data: validate(body) };
-  } catch {
+    return { status: 'ok', data: validate(response.data) };
+  } catch (error) {
     // Next logs background rejections itself. Never attach the original error,
     // message, body or cause: JSON/network errors can contain upstream content.
-    throw new TutorialApiFailure(failureKind);
+    throw new TutorialApiFailure(error instanceof TutorialTransportFailure ? error.kind : failureKind);
   }
 }
 
