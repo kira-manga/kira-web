@@ -2,6 +2,8 @@ import { access, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { assertTutorialRuntimeBuild } from './assert-tutorial-runtime-build.mjs';
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const standalone = path.join(root, '.next/standalone');
 
@@ -66,10 +68,7 @@ if (!policyCorpus.includes('Within two business days')) {
   throw new Error('Support response-time statement is missing');
 }
 
-const apiSource = await readFile(path.join(root, 'src/lib/tutorial-api.ts'), 'utf8');
-for (const marker of ['revalidate: 60', '/api/v1/tutorial-categories', '/api/v1/tutorials', 'status: \'unavailable\'']) {
-  if (!apiSource.includes(marker)) throw new Error(`Tutorial API boundary is missing: ${marker}`);
-}
+await assertTutorialRuntimeBuild(root);
 
 for (const asset of [
   'assets/brand/kira-logo.svg',

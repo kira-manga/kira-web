@@ -14,8 +14,6 @@ interface TutorialPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 60;
-
 export async function generateMetadata({ params }: TutorialPageProps): Promise<Metadata> {
   const { slug } = await params;
   const result = await getTutorial(slug);
