@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   alternates: { canonical: '/tutorials' },
 };
 
-export const revalidate = 60;
-
 export default async function TutorialsPage() {
   const copy = tutorialsPageCopy.hero;
   const logo = media.brand.logo;

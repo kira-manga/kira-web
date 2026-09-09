@@ -1,4 +1,8 @@
+import { unstable_cache } from 'next/cache';
+import { connection } from 'next/server';
+
 import type { LocalizedCopy } from '@/content/types';
+import { tutorialCacheKey, tutorialRequestPath, type TutorialRequest } from './tutorial-cache-key';
 
 export interface TutorialCategory {
   id: string;
@@ -53,40 +57,74 @@ export interface Tutorial {
   revision: number;
 }
 
-export type TutorialFetchResult<T> =
+type CachedTutorialResult<T> =
   | { status: 'ok'; data: T }
-  | { status: 'not-found' }
-  | { status: 'unavailable' };
+  | { status: 'not-found' };
+
+export type TutorialFetchResult<T> = CachedTutorialResult<T> | { status: 'unavailable' };
 
 const internalApiUrl = (process.env.KIRA_TUTORIAL_API_URL ?? 'http://localhost:8080').replace(/\/$/, '');
 const publicApiUrl = (process.env.NEXT_PUBLIC_KIRA_API_URL ?? 'http://localhost:8080').replace(/\/$/, '');
 
 export async function getTutorialCategories(): Promise<TutorialFetchResult<TutorialCategory[]>> {
-  return request('/api/v1/tutorial-categories', categoryArray);
+  return request({ kind: 'categories' }, categoryArray);
 }
 
 export async function getTutorials(options: { category?: string; featured?: boolean } = {}): Promise<TutorialFetchResult<Tutorial[]>> {
-  const query = new URLSearchParams();
-  if (options.category) query.set('category', options.category);
-  if (options.featured !== undefined) query.set('featured', String(options.featured));
-  const suffix = query.size ? `?${query}` : '';
-  return request(`/api/v1/tutorials${suffix}`, tutorialArray);
+  return request({ kind: 'tutorials', category: options.category, featured: options.featured }, tutorialArray);
 }
 
 export async function getTutorial(slug: string): Promise<TutorialFetchResult<Tutorial>> {
-  return request(`/api/v1/tutorials/${encodeURIComponent(slug)}`, tutorial);
+  return request({ kind: 'tutorial', slug }, tutorial);
 }
 
-async function request<T>(path: string, validate: (value: unknown) => T): Promise<TutorialFetchResult<T>> {
+type TutorialFailureKind = 'network' | 'http' | 'json' | 'schema';
+
+class TutorialApiFailure extends Error {
+  constructor(kind: TutorialFailureKind) {
+    super(`Tutorial API unavailable (${kind})`);
+    this.name = 'TutorialApiFailure';
+  }
+}
+
+async function fetchValidated<T>(resource: TutorialRequest, validate: (value: unknown) => T): Promise<CachedTutorialResult<T>> {
+  let failureKind: TutorialFailureKind = 'network';
   try {
-    const response = await fetch(`${internalApiUrl}${path}`, {
+    // Do not let a raw status-200 response enter the fetch cache before validation.
+    const response = await fetch(`${internalApiUrl}${tutorialRequestPath(resource)}`, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
-    if (response.status === 404) return { status: 'not-found' };
-    if (!response.ok) throw new Error(`tutorial API returned ${response.status}`);
-    return { status: 'ok', data: validate(await response.json()) };
+    // An authoritative archive replaces a positive cache entry. Throwing here would
+    // preserve the old tutorial on every refresh, potentially indefinitely.
+    if (resource.kind === 'tutorial' && response.status === 404) return { status: 'not-found' };
+    failureKind = 'http';
+    if (!response.ok) throw new TutorialApiFailure(failureKind);
+    failureKind = 'json';
+    const body: unknown = await response.json();
+    failureKind = 'schema';
+    return { status: 'ok', data: validate(body) };
   } catch {
+    // Next logs background rejections itself. Never attach the original error,
+    // message, body or cause: JSON/network errors can contain upstream content.
+    throw new TutorialApiFailure(failureKind);
+  }
+}
+
+async function request<T>(resource: TutorialRequest, validate: (value: unknown) => T): Promise<TutorialFetchResult<T>> {
+  // Outside both catches and the cached callback: do not swallow Next's dynamic
+  // rendering control flow or bake a backend-less build's unavailable UI into ISR.
+  await connection();
+  try {
+    return await unstable_cache(
+      () => fetchValidated(resource, validate),
+      [tutorialCacheKey(internalApiUrl, publicApiUrl, resource)],
+      { revalidate: 60 },
+    )();
+  } catch (error) {
+    // Cold failures are uncached. On refresh failure Next returns the last validated
+    // value (including a cached not-found) and never reaches this fallback.
+    console.error(error instanceof TutorialApiFailure ? error.message : 'Tutorial API unavailable (cache)');
     return { status: 'unavailable' };
   }
 }

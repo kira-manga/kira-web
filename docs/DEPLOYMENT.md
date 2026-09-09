@@ -20,6 +20,13 @@ docker build \
 The runtime receives `KIRA_TUTORIAL_API_URL=http://backend:8080`, joins the proxy network shared with
 the backend, runs as non-root on port 8080, has a 384 MiB limit, keeps its root filesystem read-only,
 and mounts `kira-next-cache` at `/app/.next/cache`. Do not mount tutorial media into web.
+The builder needs no internal backend: tutorial-dependent routes render at request time and the
+build checks reject prerendered tutorial output. A cold runtime outage shows unavailable UI without
+seeding that state into the cache; a warm outage retains validated data, including sitemap entries.
+The 60-second Data Cache refresh is not full-page ISR or a retry backoff. Detail 404 replaces old
+content after its refresh completes (the first stale request may still see the old tutorial).
+Before release, run `npm run test:tutorial-cache` against the built standalone output to exercise
+cold/warm outage, malformed data, recovery, empty collections and archive behavior locally.
 
 Deploy over the restricted SSH gateway on port 22 only after the backend migration, idempotent seed,
 and public tutorial/media parity checks pass. Then deploy web, retain the existing host Nginx virtual
