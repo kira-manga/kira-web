@@ -1,0 +1,31 @@
+name: Production policy drift
+
+on:
+  schedule:
+    - cron: '23 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  policy:
+    if: >-
+      ${{ github.repository == 'kira-manga/kira-web' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+          github.ref == 'refs/heads/main' &&
+          github.workflow_ref == 'kira-manga/kira-web/.github/workflows/production-policy.yml@refs/heads/main' &&
+          github.workflow_sha == github.sha && github.run_attempt == 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check native production policy without deployment
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+          GH_POLICY_READ_TOKEN: ${{ secrets.WEB_PRODUCTION_POLICY_READ_TOKEN }}
+        run: python3 scripts/ci/deployment_policy.py drift
