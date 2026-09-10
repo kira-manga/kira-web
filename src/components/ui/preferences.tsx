@@ -85,11 +85,13 @@ export function PreferenceControls({ compact = false }: { compact?: boolean }) {
 }
 
 export function LiveAppScreen({ eager = false }: { eager?: boolean }) {
+  const { preferences } = useKiraPreferences();
+
   return (
     <span
       className={eager ? 'liveAppScreen liveAppScreenEager' : 'liveAppScreen'}
       role="img"
-      aria-label={siteCopy.preferences.liveScreenAlt}
+      aria-label={siteCopy.preferences.liveScreenAlt[preferences.language]}
     />
   );
 }

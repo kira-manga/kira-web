@@ -1,12 +1,13 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { useId } from 'react';
 
 import { ArrowIcon, BookIcon, CheckIcon } from '@/components/ui/icons';
 import { LocalizedText } from '@/components/ui/localized-text';
 import { TutorialMediaImage } from '@/components/tutorials/tutorial-media-image';
 import { tutorialsPageCopy } from '@/content/tutorials';
-import { getTutorial, getTutorials, type TutorialMediaSlot } from '@/lib/tutorial-api';
+import { getTutorial, getTutorials, type Tutorial, type TutorialMediaSlot } from '@/lib/tutorial-api';
 
 import styles from '@/components/tutorials/tutorials.module.css';
 
@@ -31,8 +32,8 @@ function TutorialMediaFrame({ media, compact = false }: { media: TutorialMediaSl
     <figure className={compact ? `${styles.tutorialMedia} ${styles.compactMedia}` : styles.tutorialMedia}>
       <div className={styles.mediaBar}>
         <span><i /><i /><i /></span>
-        <b>{copy.mediaTitle}</b>
-        <em><i /> {copy.mediaStatus}</em>
+        <b><LocalizedText en={copy.mediaTitle.en} ar={copy.mediaTitle.ar} /></b>
+        <em><i /> <LocalizedText en={copy.mediaStatus.en} ar={copy.mediaStatus.ar} /></em>
       </div>
       <div className={styles.mediaImage}><TutorialMediaImage media={media} priority={!compact} /></div>
       <figcaption><CheckIcon /><LocalizedText en={copy.mediaCaption.en} ar={copy.mediaCaption.ar} /></figcaption>
@@ -61,6 +62,11 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
 
   const tutorial = tutorialResult.data;
   const tutorialList = listResult.status === 'ok' && listResult.data.length ? listResult.data : [tutorial];
+  return <TutorialArticle tutorial={tutorial} tutorialList={tutorialList} />;
+}
+
+function TutorialArticle({ tutorial, tutorialList }: { tutorial: Tutorial; tutorialList: Tutorial[] }) {
+  const labelId = useId();
   const currentIndex = tutorialList.findIndex((item) => item.slug === tutorial.slug);
   const nextTutorial = tutorialList.length > 1 ? tutorialList[(Math.max(currentIndex, 0) + 1) % tutorialList.length] : null;
   const copy = tutorialsPageCopy.article;
@@ -68,7 +74,10 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
   return (
     <article className={styles.articlePage}>
       <div className={`${styles.articleLayout} shell`}>
-        <aside className={styles.articleSidebar} aria-label={copy.tutorialLibraryLabel}>
+        <aside className={styles.articleSidebar} aria-labelledby={`${labelId}-tutorial-library`}>
+          <span className={styles.srOnly} id={`${labelId}-tutorial-library`}>
+            <LocalizedText en={copy.tutorialLibraryLabel.en} ar={copy.tutorialLibraryLabel.ar} />
+          </span>
           <Link className={styles.sidebarHome} href="/tutorials"><BookIcon /><LocalizedText en={copy.allTutorials.en} ar={copy.allTutorials.ar} /></Link>
           <p><LocalizedText en={copy.quickGuides.en} ar={copy.quickGuides.ar} /></p>
           <nav>
@@ -84,7 +93,10 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
 
         <div className={styles.articleContent}>
           <header className={styles.articleHeader}>
-            <nav className={styles.breadcrumbs} aria-label={copy.breadcrumbLabel}>
+            <nav className={styles.breadcrumbs} aria-labelledby={`${labelId}-tutorial-breadcrumb`}>
+              <span className={styles.srOnly} id={`${labelId}-tutorial-breadcrumb`}>
+                <LocalizedText en={copy.breadcrumbLabel.en} ar={copy.breadcrumbLabel.ar} />
+              </span>
               <Link href="/tutorials"><LocalizedText en={copy.tutorials.en} ar={copy.tutorials.ar} /></Link>
               <span>/</span>
               <span><LocalizedText en={tutorial.category.label.en} ar={tutorial.category.label.ar} /></span>
@@ -126,8 +138,8 @@ export default async function TutorialPage({ params }: TutorialPageProps) {
           ) : null}
         </div>
 
-        <aside className={styles.articleToc} aria-label={copy.onThisPageLabel}>
-          <p><LocalizedText en={copy.inThisGuide.en} ar={copy.inThisGuide.ar} /></p>
+        <aside className={styles.articleToc} aria-labelledby={`${labelId}-tutorial-toc`}>
+          <p id={`${labelId}-tutorial-toc`}><LocalizedText en={copy.inThisGuide.en} ar={copy.inThisGuide.ar} /></p>
           <nav>
             {tutorial.steps.map((step, index) => <a href={`#${step.id}`} key={step.id}><span>{String(index + 1).padStart(2, '0')}</span><LocalizedText en={step.title.en} ar={step.title.ar} /></a>)}
           </nav>

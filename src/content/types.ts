@@ -6,6 +6,11 @@ export interface LocalizedCopy {
   ar: string;
 }
 
+export interface LocalizedCountMessages {
+  en: { one: string; other: string };
+  ar: Record<Intl.LDMLPluralRule, string>;
+}
+
 export interface ImageAsset {
   src: string;
   width: number;

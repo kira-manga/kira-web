@@ -28,9 +28,10 @@ export const siteCopy = {
     { href: '/support', label: { en: 'Support', ar: 'الدعم' } },
   ],
   header: {
-    navigationLabel: 'Main navigation',
-    primaryLinksLabel: 'Primary links',
-    menuLabel: 'Toggle navigation',
+    navigationLabel: { en: 'Main navigation', ar: 'التنقل الرئيسي' },
+    primaryLinksLabel: { en: 'Primary links', ar: 'الروابط الرئيسية' },
+    menuLabel: { en: 'Toggle navigation', ar: 'فتح قائمة التنقل أو إغلاقها' },
+    homeLinkSuffix: { en: 'home', ar: 'الصفحة الرئيسية' },
     cta: { en: 'Start reading', ar: 'ابدأ القراءة' },
   },
   preferences: {
@@ -38,7 +39,7 @@ export const siteCopy = {
     useDarkTheme: { en: 'Use dark theme', ar: 'استخدام المظهر الداكن' },
     switchToEnglish: { en: 'Switch to English', ar: 'التبديل إلى الإنجليزية' },
     switchToArabic: { en: 'Switch to Arabic', ar: 'التبديل إلى العربية' },
-    liveScreenAlt: 'Kira Discover screen — شاشة اكتشف في كيرا',
+    liveScreenAlt: { en: 'Kira Discover screen', ar: 'شاشة اكتشف في كيرا' },
     languageToggle: { english: 'EN', arabic: 'ع' },
   },
   footer: {
@@ -66,12 +67,11 @@ export const siteCopy = {
   documents: {
     englishOnlyNotice: 'هذه الصفحة المرجعية متاحة حاليًا باللغة الإنجليزية لضمان دقة الإرشادات والنصوص القانونية.',
     onThisPage: { en: 'On this page', ar: 'في هذه الصفحة' },
-    onThisPageLabel: 'On this page',
   },
   notFound: {
     eyebrow: '404',
-    title: 'This page slipped between chapters.',
-    description: 'The link may be outdated, or the page may have moved.',
-    cta: 'Back to Kira',
+    title: { en: 'This page slipped between chapters.', ar: 'ضاعت هذه الصفحة بين الفصول.' },
+    description: { en: 'The link may be outdated, or the page may have moved.', ar: 'قد يكون الرابط قديمًا، أو ربما انتقلت الصفحة.' },
+    cta: { en: 'Back to Kira', ar: 'العودة إلى كيرا' },
   },
 } as const;

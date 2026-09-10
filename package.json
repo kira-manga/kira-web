@@ -17,6 +17,7 @@
     "verify": "npm run lint && npm run typecheck && npm run build && npm run check",
     "test:tutorial-transport": "node scripts/test-tutorial-transport.mjs",
     "test:tutorial-cache": "node scripts/test-tutorial-cache.mjs",
+    "test:tutorial-counts": "node scripts/test-tutorial-counts.mjs",
     "verify:production": "node scripts/verify-deployment.mjs"
   },
   "dependencies": {
