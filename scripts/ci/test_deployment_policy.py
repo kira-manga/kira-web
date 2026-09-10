@@ -448,43 +448,88 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn("ref: ${{ github.sha }}\n          persist-credentials: false", block)
         before, after = self.steps(preflight), self.steps(deploy)
         self.assertEqual(len(before), 2)
-        self.assertEqual(len(after), 6)
+        self.assertEqual(len(after), 9)
         self.assertIn("snapshot: ${{ steps.policy.outputs.snapshot }}", preflight)
         self.assertIn("id: policy", before[1])
         self.assertIn("run: python3 scripts/ci/deployment_policy.py preflight", before[1])
-        self.assertIn("uses: docker/setup-buildx-action@", after[2])
-        self.assertIn("uses: docker/build-push-action@", after[3])
+        self.assertIn("uses: actions/setup-node@", after[2])
+        self.assertIn("node-version: '22'", after[2])
+        self.assertIn("uses: docker/setup-buildx-action@", after[3])
+        self.assertIn("uses: docker/build-push-action@", after[4])
         for required in ("load: true", "push: false", "tags: kira-web:${{ github.sha }}", "KIRA_WEB_PRODUCTION=true",
+                         "KIRA_WEB_SOURCE_REVISION=${{ github.sha }}",
                          "ANDROID_APP_SHA256_CERT_FINGERPRINT=${{ vars.ANDROID_APP_SHA256_CERT_FINGERPRINT }}",
                          "NEXT_PUBLIC_KIRA_API_URL=https://api.kiramanga.me"):
-            self.assertIn(required, after[3])
-        for index in (1, 4):
+            self.assertIn(required, after[4])
+        for index in (1, 5):
             self.assertIn("WEB_DEPLOYMENT_SNAPSHOT: ${{ needs.preflight.outputs.snapshot }}", after[index])
             self.assertIn("run: python3 scripts/ci/deployment_policy.py recheck", after[index])
-        self.assertIn("REVISION: ${{ github.sha }}", after[5])
-        self.assertIn("secrets.WEB_PRODUCTION_SSH_PRIVATE_KEY", after[5])
-        self.assertIn("secrets.WEB_PRODUCTION_SSH_KNOWN_HOSTS", after[5])
-        self.assertIn("run: bash scripts/ci/deploy-web.sh", after[5])
+        self.assertIn("REVISION: ${{ github.sha }}", after[6])
+        self.assertIn("secrets.WEB_PRODUCTION_SSH_PRIVATE_KEY", after[6])
+        self.assertIn("secrets.WEB_PRODUCTION_SSH_KNOWN_HOSTS", after[6])
+        self.assertIn("run: bash scripts/ci/deploy-web.sh", after[6])
+        self.assertIn("id: public_verification", after[7])
+        self.assertIn("timeout-minutes: 2", after[7])
+        self.assertIn("KIRA_WEB_SOURCE_REVISION: ${{ github.sha }}", after[7])
+        self.assertIn("run: node scripts/verify-deployment.mjs\n", after[7])
+        self.assertNotRegex(after[7], r"\|\||exit 0|npm |https?://|sleep |retry")
+        for name in ("ANDROID_APP_SHA256_CERT_FINGERPRINT", "ANDROID_PACKAGE_NAME", "APPLE_TEAM_ID", "IOS_BUNDLE_ID"):
+            self.assertIn(name + "=${{ vars." + name + " }}", after[4])
+            self.assertIn(name + ": ${{ vars." + name + " }}", after[7])
+        self.assertIn("if: ${{ failure() && steps.public_verification.outcome == 'failure' }}", after[8])
+        for notice in ("::error::Public release verification failed", "Activation may remain active",
+                       "No rollback was attempted", "GITHUB_STEP_SUMMARY", "incident hold",
+                       "EXTERNAL VERIFICATION REQUIRED"):
+            self.assertIn(notice, after[8])
+        for step in after[7:]:
+            self.assertNotRegex(step, r"secrets\.|github.token|SSH_|\bssh\b|\bdocker\b|kira-deploy|: write")
         for step in before + after:
-            self.assertNotRegex(step, r"\bif:|continue-on-error")  # Native success-only step ordering.
+            self.assertNotIn("continue-on-error", step)
+            if step != after[8]:
+                self.assertNotRegex(step, r"\bif:")  # Only the final failure notice may bypass success ordering.
             if "deployment_policy.py" in step:
                 self.assertIn("GH_READ_TOKEN: ${{ github.token }}", step)
                 self.assertIn("GH_POLICY_READ_TOKEN: ${{ secrets.WEB_PRODUCTION_POLICY_READ_TOKEN }}", step)
                 self.assertNotIn("SSH_", step)
             else:
                 self.assertNotRegex(step, r"GH_READ_TOKEN|GH_POLICY_READ_TOKEN|POLICY_READ_TOKEN")
-            if step != after[5]:
+            if step != after[6]:
                 self.assertNotIn("secrets.WEB_PRODUCTION_SSH", step)
 
     def test_actual_workflow_failure_dependencies_and_credential_ordering(self):
         self.assert_deploy_wiring((ROOT / ".github/workflows/deploy.yml").read_text())
+
+    def test_failure_notice_writes_hold_without_recovery_authority(self):
+        deploy = (ROOT / ".github/workflows/deploy.yml").read_text().split("  deploy:\n", 1)[1]
+        notice = self.steps(deploy)[8].split("        run: |\n", 1)[1]
+        script = "\n".join(line[10:] for line in notice.splitlines())
+        with tempfile.TemporaryDirectory(prefix="web-public-notice-") as directory:
+            summary = Path(directory) / "summary.md"
+            env = {"PATH": os.defpath, "GITHUB_STEP_SUMMARY": str(summary)}
+            result = subprocess.run(["bash", "-euo", "pipefail", "-c", script], env=env,
+                                    capture_output=True, text=True, timeout=3)
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("::error::Public release verification failed", result.stdout)
+            self.assertIn("This deployment remains failed", summary.read_text())
+            self.assertIn("known-public-good immutable image/archive/source revision tuple", summary.read_text())
+            # A summary write failure is not converted into a successful gate/recovery either.
+            env["GITHUB_STEP_SUMMARY"] = directory
+            failed = subprocess.run(["bash", "-euo", "pipefail", "-c", script], env=env,
+                                    capture_output=True, text=True, timeout=3)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("::error::Public release verification failed", failed.stdout)
 
     def test_wiring_checks_detect_dependency_bypass_or_refreshed_baseline(self):
         source = (ROOT / ".github/workflows/deploy.yml").read_text()
         for old, new in (("needs: preflight", "needs: []"), ("environment: production", "environment: staging"),
                          ("needs.preflight.result == 'success'", "always()"),
                          ("deployment_policy.py recheck", "deployment_policy.py preflight"),
-                         ("secrets.WEB_PRODUCTION_SSH_PRIVATE_KEY", "secrets.SERVER3_SSH_PRIVATE_KEY")):
+                         ("secrets.WEB_PRODUCTION_SSH_PRIVATE_KEY", "secrets.SERVER3_SSH_PRIVATE_KEY"),
+                         ("KIRA_WEB_SOURCE_REVISION=${{ github.sha }}", "KIRA_WEB_SOURCE_REVISION=main"),
+                         ("KIRA_WEB_SOURCE_REVISION: ${{ github.sha }}", "KIRA_WEB_SOURCE_REVISION: main"),
+                         ("run: node scripts/verify-deployment.mjs", "if: false\n        run: node scripts/verify-deployment.mjs"),
+                         ("run: node scripts/verify-deployment.mjs", "run: node scripts/verify-deployment.mjs || true"),
+                         ("steps.public_verification.outcome == 'failure'", "steps.public_verification.outcome == 'success'")):
             with self.subTest(old=old), self.assertRaises(AssertionError):
                 self.assert_deploy_wiring(source.replace(old, new))
 
@@ -494,8 +539,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("push:\n    branches: [main]", verify)
         self.assertIn("  web-verify:\n    name: web-verify\n", verify)
         self.assertNotRegex(verify, r"environment:|secrets\.|pull_request_target|paths:|continue-on-error|\bif:")
-        for command in ("python3 -m unittest discover -s scripts/ci -p 'test_*.py'", "npm ci", "npm run verify"):
+        for command in ("python3 -m unittest discover -s scripts/ci -p 'test_*.py'", "node scripts/test-verify-deployment.mjs", "npm ci", "npm run verify"):
             self.assertIn("run: " + command, verify)
+        self.assertIn("KIRA_WEB_SOURCE_REVISION: ${{ github.sha }}", verify)
         drift = (ROOT / ".github/workflows/production-policy.yml").read_text()
         self.assertIn("github.repository == 'kira-manga/kira-web'", drift)
         self.assertIn("github.ref == 'refs/heads/main'", drift)

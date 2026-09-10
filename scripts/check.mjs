@@ -3,12 +3,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { assertTutorialRuntimeBuild } from './assert-tutorial-runtime-build.mjs';
+import { sourceRevision, validateSourceRevision } from './association-config.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const standalone = path.join(root, '.next/standalone');
 
 for (const file of ['server.js', 'package.json', 'public/.well-known/assetlinks.json',
-  'public/.well-known/apple-app-site-association', 'public/assets/brand/kira-logo.svg']) {
+  'public/.well-known/apple-app-site-association', 'public/kira-release.json', 'public/assets/brand/kira-logo.svg']) {
   await access(path.join(standalone, file));
 }
 await access(path.join(root, '.next/static'));
@@ -108,10 +109,13 @@ const assetlinks = JSON.parse(await readFile(path.join(standalone, 'public/.well
 if (assetlinks?.[0]?.target?.package_name !== 'me.manga.kira') throw new Error('assetlinks.json package_name is invalid');
 const aasa = JSON.parse(await readFile(path.join(standalone, 'public/.well-known/apple-app-site-association'), 'utf8'));
 if (aasa?.applinks?.details?.[0]?.appID !== '7CGZ2343AA.me.manga.kira') throw new Error('AASA appID is invalid');
+validateSourceRevision();
+const release = JSON.parse(await readFile(path.join(standalone, 'public/kira-release.json'), 'utf8'));
+if (release?.sourceRevision !== sourceRevision) throw new Error('Generated source revision does not match the build input');
 
 const sourceTree = await readFile(path.join(root, 'public/.well-known/assetlinks.json'), 'utf8');
 if (!sourceTree.includes('__ANDROID_SHA256_CERT_FINGERPRINT__')) {
   throw new Error('The source association file must retain its documented fingerprint token');
 }
 
-console.log('Standalone Next.js server, tutorial API boundary, assets, and associations are structurally valid.');
+console.log('Standalone Next.js server, tutorial API boundary, assets, associations and source marker are structurally valid.');

@@ -80,3 +80,36 @@ build time and must be the public API origin used for browser media and CSP.
 
 Security headers formerly owned by the static Nginx image now live in `next.config.mjs`. Host Nginx,
 public domains, App/Universal Link association files, and non-tutorial screenshot copies remain.
+
+## Public release verification
+
+The protected manual deployment now requires a dependency-free public gate **after** SSH activation.
+It checks the exact build-generated source revision, real route canonicals, app associations,
+tutorial SSR availability and separate fresh, shape-validated public tutorial API responses.
+An HTTP-200 homepage or stale-good Data Cache render alone cannot pass it. Empty tutorial collections
+remain valid. This does not change the tutorial cache or server transport behavior above.
+
+Run the same verifier for an explicitly selected deployed/recovered revision, with the same public
+association inputs used for its build:
+
+```sh
+KIRA_WEB_SOURCE_REVISION="$EXPECTED_FULL_SOURCE_SHA" \
+ANDROID_APP_SHA256_CERT_FINGERPRINT="$ANDROID_APP_SHA256_CERT_FINGERPRINT" \
+npm run verify:production
+```
+
+Targets are fixed to `https://kiramanga.me` and `https://api.kiramanga.me`; there is no base-URL argument
+or TLS bypass. Production builds require the full lowercase 40-hex `KIRA_WEB_SOURCE_REVISION` and
+generate `/kira-release.json` only in standalone output, with `Cache-Control: no-store`. Development
+builds without a SHA use `development`, which cannot pass the public gate. The marker binds **source
+revision**, not image ID, reproducibility or tested-byte provenance.
+
+`npm run test:deployment` uses only Node and OpenSSL: pure predicates/build-input checks and one owned
+loopback HTTPS fixture plus its HTTP redirect listener. A disposable CA is trusted only by its owned
+child; sockets/timers are closed, the child joined, and certificates/scratch removed immediately.
+It needs no dependencies, Next build, Docker, external backend or public requests.
+
+See [deployment limits and incident recovery](docs/DEPLOYMENT.md#public-gate-and-incident-hold).
+A failed public gate leaves the deployment failed and emits an operator incident-hold notice; it
+does **not** automatically roll back or establish on-call receipt. Freshness assumptions, installed
+controls, retained known-public-good bytes and the real root recovery drill remain external gates.
