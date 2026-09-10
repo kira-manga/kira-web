@@ -82,7 +82,7 @@ export const homeCopy = {
       accent: { en: 'the advertisement.', ar: 'هي الإعلان.' },
     },
     windowTitle: 'KIRA / PRODUCT TOUR',
-    switcherLabel: 'Choose a Kira screen preview',
+    switcherLabel: { en: 'Choose a Kira screen preview', ar: 'اختر معاينة لشاشة كيرا' },
     tabs: [
       { key: 'discover', number: '01', label: { en: 'Discover', ar: 'اكتشف' } },
       { key: 'history', number: '02', label: { en: 'History', ar: 'السجل' } },
@@ -93,7 +93,6 @@ export const homeCopy = {
     ],
     stories: {
       discover: {
-        buttonLabel: 'Show the Discover screen',
         label: { en: 'DISCOVERY', ar: 'الاكتشاف' },
         title: { en: 'A home that gets you somewhere.', ar: 'واجهة توصلك لما تريد.' },
         description: {
@@ -108,7 +107,6 @@ export const homeCopy = {
         caption: { en: 'Discover · popular titles and latest updates', ar: 'اكتشف · العناوين الشائعة وآخر التحديثات' },
       },
       history: {
-        buttonLabel: 'Show the reading History screen',
         label: { en: 'HISTORY', ar: 'السجل' },
         title: { en: 'Pick up exactly where you stopped.', ar: 'عُد تمامًا إلى حيث توقفت.' },
         description: {
@@ -123,7 +121,6 @@ export const homeCopy = {
         caption: { en: 'History · recent chapters and progress', ar: 'السجل · الفصول الأخيرة والتقدّم' },
       },
       library: {
-        buttonLabel: 'Show the Library screen',
         label: { en: 'LIBRARY', ar: 'المكتبة' },
         title: { en: 'Your saved series, kept in order.', ar: 'سلاسلك المحفوظة مرتبة دائمًا.' },
         description: {
@@ -138,7 +135,6 @@ export const homeCopy = {
         caption: { en: 'Library · saved titles and reading state', ar: 'المكتبة · العناوين المحفوظة وحالة القراءة' },
       },
       mangaDetails: {
-        buttonLabel: 'Show the manga Details screen',
         label: { en: 'DETAILS', ar: 'التفاصيل' },
         title: { en: 'Every chapter, one tap away.', ar: 'كل فصل على بُعد لمسة.' },
         description: {
@@ -153,7 +149,6 @@ export const homeCopy = {
         caption: { en: 'Details · chapters, progress, downloads', ar: 'التفاصيل · الفصول والتقدّم والتنزيل' },
       },
       notifications: {
-        buttonLabel: 'Show the Notifications screen',
         label: { en: 'NOTIFICATIONS', ar: 'الإشعارات' },
         title: { en: 'New chapters without the noise.', ar: 'فصول جديدة بلا ضوضاء.' },
         description: {
@@ -168,7 +163,6 @@ export const homeCopy = {
         caption: { en: 'Notifications · updates from followed series', ar: 'الإشعارات · تحديثات السلاسل المتابَعة' },
       },
       settings: {
-        buttonLabel: 'Show the Settings screen',
         label: { en: 'SETTINGS', ar: 'الإعدادات' },
         title: { en: 'Make Kira work your way.', ar: 'اجعل كيرا يعمل بطريقتك.' },
         description: {

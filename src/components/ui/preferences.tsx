@@ -66,8 +66,7 @@ export function PreferenceControls({ compact = false }: { compact?: boolean }) {
     <div className={compact ? 'preferenceControls preferenceControlsCompact' : 'preferenceControls'}>
       <button
         type="button"
-        aria-label={isDark ? siteCopy.preferences.useLightTheme : siteCopy.preferences.useDarkTheme}
-        aria-pressed={isDark}
+        aria-label={(isDark ? siteCopy.preferences.useLightTheme : siteCopy.preferences.useDarkTheme)[preferences.language]}
         onClick={() => update({ ...preferences, theme: isDark ? 'light' : 'dark' })}
       >
         <span className="themeIcon themeIconMoon"><MoonIcon /></span>
@@ -76,8 +75,7 @@ export function PreferenceControls({ compact = false }: { compact?: boolean }) {
       <button
         type="button"
         className="languageToggle"
-        aria-label={isArabic ? siteCopy.preferences.switchToEnglish : siteCopy.preferences.switchToArabic}
-        aria-pressed={isArabic}
+        aria-label={(isArabic ? siteCopy.preferences.switchToEnglish : siteCopy.preferences.switchToArabic)[preferences.language]}
         onClick={() => update({ ...preferences, language: isArabic ? 'en' : 'ar' })}
       >
         <GlobeIcon /><span>{isArabic ? siteCopy.preferences.languageToggle.english : siteCopy.preferences.languageToggle.arabic}</span>
