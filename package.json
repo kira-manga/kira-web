@@ -18,6 +18,7 @@
     "test:tutorial-transport": "node scripts/test-tutorial-transport.mjs",
     "test:tutorial-cache": "node scripts/test-tutorial-cache.mjs",
     "test:tutorial-counts": "node scripts/test-tutorial-counts.mjs",
+    "test:deployment": "node scripts/test-verify-deployment.mjs",
     "verify:production": "node scripts/verify-deployment.mjs"
   },
   "dependencies": {

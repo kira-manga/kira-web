@@ -59,6 +59,9 @@ jobs:
           GH_POLICY_READ_TOKEN: ${{ secrets.WEB_PRODUCTION_POLICY_READ_TOKEN }}
           WEB_DEPLOYMENT_SNAPSHOT: ${{ needs.preflight.outputs.snapshot }}
         run: python3 scripts/ci/deployment_policy.py recheck
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Build verified exact-SHA image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -69,6 +72,7 @@ jobs:
           tags: kira-web:${{ github.sha }}
           build-args: |
             KIRA_WEB_PRODUCTION=true
+            KIRA_WEB_SOURCE_REVISION=${{ github.sha }}
             ANDROID_APP_SHA256_CERT_FINGERPRINT=${{ vars.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
             APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}
             IOS_BUNDLE_ID=${{ vars.IOS_BUNDLE_ID }}
@@ -91,3 +95,30 @@ jobs:
           DEPLOY_USER: ${{ vars.SERVER3_USER }}
           REVISION: ${{ github.sha }}
         run: bash scripts/ci/deploy-web.sh
+      - name: Verify public release after activation
+        id: public_verification
+        timeout-minutes: 2
+        env:
+          KIRA_WEB_SOURCE_REVISION: ${{ github.sha }}
+          ANDROID_APP_SHA256_CERT_FINGERPRINT: ${{ vars.ANDROID_APP_SHA256_CERT_FINGERPRINT }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID }}
+        run: node scripts/verify-deployment.mjs
+      - name: Public verification incident hold and recovery notice
+        if: ${{ failure() && steps.public_verification.outcome == 'failure' }}
+        run: |
+          echo '::error::Public release verification failed. Activation may remain active; no rollback was attempted. Operator incident hold and separately authorized recovery are required.'
+          cat >> "$GITHUB_STEP_SUMMARY" <<'NOTICE'
+          ## Public release verification failed — operator action required
+
+          Activation may remain active. No rollback was attempted. This deployment remains failed.
+          Enforce the incident hold: freeze dispatches, approvals, ordinary root Web activations,
+          and image/archive pruning; cancel queued or legacy-approved work. Preserve both the
+          failed candidate and the known-public-good immutable image/archive/source revision tuple.
+          Follow docs/DEPLOYMENT.md for separately authorized diagnosis and conditional recovery.
+          Re-run the same public verifier for the recovered revision before lifting the hold.
+          Before any new approval, inspect the prior verification/recovery receipt.
+          On-call receipt, retained recovery bytes, root capability and the actual recovery drill
+          remain EXTERNAL VERIFICATION REQUIRED; this notice is not proof of paging or recovery.
+          NOTICE

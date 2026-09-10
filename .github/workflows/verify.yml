@@ -25,7 +25,11 @@ jobs:
           cache: npm
       - name: Deployment policy, workflow and shell regression checks
         run: python3 -m unittest discover -s scripts/ci -p 'test_*.py'
+      - name: Public release verifier native TLS fixture
+        run: node scripts/test-verify-deployment.mjs
       - name: Install locked dependencies
         run: npm ci
       - name: Verify source and standalone build
+        env:
+          KIRA_WEB_SOURCE_REVISION: ${{ github.sha }}
         run: npm run verify

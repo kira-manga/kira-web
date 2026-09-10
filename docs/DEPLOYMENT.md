@@ -20,9 +20,10 @@ replacing its snapshot. Resolve the cause and start a fresh dispatch.
 
 The build still runs Dockerfile's production `npm run verify` and streams that same local
 `kira-web:<full-sha>` image, without another image build, registry push or artifact handoff.
-This workflow is not a public post-deployment health gate; that separate release work remains
-necessary. Production concurrency is serialized without cancellation; transfer is bounded to
-five minutes (plus termination grace), inside the 30-minute production job.
+The same dispatch SHA is passed as `KIRA_WEB_SOURCE_REVISION` to the build and to a required public
+verification step **after successful transfer**. A successful local health check/SSH exit is not
+public release acceptance. Production concurrency is serialized without cancellation; transfer
+is bounded to five minutes (plus termination grace), inside the 30-minute production job.
 
 ### Owner-installed controls (required, not installed by this repository)
 
@@ -87,7 +88,7 @@ cannot prove scope: GitHub can fall back to broader same-named secrets. The sour
 or certify secret storage. Production variables remain `SERVER3_HOST` (DNS name/IPv4, not IPv6),
 `SERVER3_USER`, and optional `SERVER3_PORT` (decimal 1–65535, default 22).
 
-SSH material is referenced only in the final transfer step, after the last recheck, written into
+SSH material is referenced only in the transfer step, after the last recheck, written into
 an owned per-run `mktemp` directory with restrictive modes, and removed on exit/failure/TERM/INT.
 The child pipeline has no key values in its environment, no ambient SSH configuration/agent or
 unrelated known-host fallback, and strict host-key checking. The command is only
@@ -139,6 +140,133 @@ to meet the supported predicate, not a history of every valid owner configuratio
 owner must monitor failures and restore required native controls or read capability, then repeat
 the check. Never bypass the gate or automatically “repair” GitHub settings in CI.
 
+## Public gate and incident hold
+
+### What the required gate establishes
+
+The dependency-free Node 22 step runs `node scripts/verify-deployment.mjs` after activation, with
+only non-sensitive revision/association inputs: no policy token, GitHub token or SSH key is passed
+to it. Native success-only ordering, non-self approval and the immediately-pre-SSH policy recheck
+remain intact. There is no continue-on-error, automatic retry, success override or rollback step.
+Failure stays nonzero; a separate failure-only Actions annotation/summary calls for operator action.
+
+The verifier has fixed site/API origins, no CLI origin/proxy/limit override, and normal TLS
+certificate/hostname validation. It checks:
+
+* Generated `/kira-release.json`: direct JSON 200 matching the exact expected full lowercase
+  40-hex source SHA. Only the standalone materializer writes it; no committed placeholder passes.
+  Its top-level path avoids the one-hour association cache rule and has an explicit no-store
+  response header. This is **source-revision identity, not image attestation or reproducibility**.
+* `/`, `/tutorials/`, `/activate/`, `/guide/`, `/privacy/`, `/terms/`, `/support/`, `/takedown/`,
+  `/data-deletion/`: HTML 200 and that route's canonical metadata, not a homepage fallback. Only
+  same-origin HTTPS canonical slash redirects are allowed, with no credentials, query or fragment;
+  no response-selected admin/media/other path is requested. HTTP `/` must redirect to the exact
+  production HTTPS origin root, not just any HTTPS site.
+* `/whatsnew/35/whatsnew.json`: direct JSON 200 and the existing nonempty-features requirement.
+* Both well-known associations: **direct HTTPS 200, no redirect**, actual application/json media
+  type (optional parameters), exact Android relation/namespace/package/fingerprint set and Apple
+  appID/empty apps list/activation components. Fingerprint case and explanatory Apple comments
+  do not change semantics; additional grants, exclusions, query/fragment constraints or broader
+  paths fail. The expected inputs use the build's same effective defaults for empty optional
+  variables: `me.manga.kira`, `7CGZ2343AA`, `me.manga.kira`. The existing structural build check
+  still enforces these shipping package/appID values; optional variables do not waive that check.
+* The tutorial index SSR marker must say available, using **both** existing `status === 'ok'`
+  results. Separate direct JSON 200 GETs to `https://api.kiramanga.me/api/v1/tutorial-categories`
+  and `/api/v1/tutorials` validate every entry and nested consumer-required field. Empty arrays
+  are valid; there is no seed count, cross-endpoint snapshot equality, media fetch or mutation.
+
+Correct association JSON does not certify Play signing-key provenance, Apple CDN refresh,
+associated-domain entitlements or physical Android/iOS link handling; those remain external checks.
+
+Every request sends `Cache-Control: no-cache, no-store, max-age=0` and `Pragma: no-cache`. The marker
+and both direct API probes additionally use a unique per-run `kira_verify` query value, without
+conditional validators. They reject positive/malformed Age, stale/revalidation warnings 110–113,
+negative Cache-Status TTL/forwarded-stale evidence and known STALE/UPDATING cache-status markers.
+This conservative refusal does not reject the backend's `max-age=60, stale-if-error=86400` policy
+by itself. **Absent stale headers do not prove current-origin freshness or intermediary compliance.**
+Installed CDN/proxy query/revalidation behavior remains an external assumption. A stale-good Next
+render cannot replace these probes, but a noncompliant intermediary may still conceal an outage.
+
+Fixed verifier limits (not runtime tutorial-transport settings):
+
+| Resource | Limit |
+| --- | --- |
+| Whole operation, including redirects and progressing body | 10 seconds |
+| Entire sequential run | 60 seconds; workflow step backstop 2 minutes |
+| Response headers | 16 KiB per response |
+| HTML / ordinary JSON decoded body | 4 MiB / 2 MiB |
+| Each association / source marker decoded body | 128 KiB / 1 KiB |
+| Aggregate retained decoded response bytes | 32 MiB per run |
+| HTML redirects | At most 2, same route/origin; all JSON probes are direct |
+
+Unused/excess bodies and decoders are destroyed, not drained. Actual decoded chunks are counted
+before retention, including gzip/deflate/Brotli; Content-Length is only an identity-body early
+refusal optimization. Requests are finite (at most 34 including canonical redirects), with no
+retries. Event-loop timers cannot preempt synchronous parsing; these bounds are not RSS,
+decompressor working memory, exact-wire-byte or global concurrency guarantees. Safe receipts
+contain only fixed path, HTTP status (0 before headers), expected revision and failure kind—never
+upstream bodies, redirect targets, exception messages or certificate details.
+
+`node scripts/test-verify-deployment.mjs` / `npm run test:deployment` checks this contract with pure
+predicates and one native loopback TLS fixture, including valid empties, wrong identity/policies,
+direct-only and canonical redirects, trust/hostname refusal, stale-good SSR versus live failures,
+freshness directives, decoded/aggregate caps, progressing-body deadlines and peer cancellation
+before teardown. It uses a disposable child-only CA and immediately joins/cleans its owned child,
+servers, sockets, timers and files. It performs no public requests, installs or Next/Docker builds.
+Source CI runs it before dependency installation; the normal affected build still checks generated
+marker materialization and the no-tutorial-prerender guard.
+
+### Mandatory approval checklist and failure procedure
+
+**This is an operational incident hold, not an automatic machine latch.** Before every production
+approval the operator must inspect the prior public-verification/recovery receipt, confirm there
+is no unresolved hold and identify the retained known-public-good image/archive/source tuple.
+Workflow-level non-cancelling concurrency serializes these releases, but cannot constrain external
+root changes or enforce that checklist. A receiver-successful/local-healthy `previous` entry is
+not automatically a public-good release.
+
+On a public gate failure:
+
+1. Treat activation as potentially still active. The failed deployment stays failed; no rollback
+   was attempted. Confirm actual on-call receipt and assign the incident; an Actions annotation or
+   summary is **not** evidence that anyone was paged or responded.
+2. Freeze new dispatches, approvals, ordinary root Web activations and image/archive pruning.
+   Cancel/reconcile queued and legacy-approved work. Preserve both the failed candidate and the
+   last **known-public-good** immutable image/archive/source tuple and their receipts. A later
+   successful activation could rotate/prune that predecessor; do not resume while the hold remains.
+3. Separately authorize diagnosis of DNS/TLS/public routing, API availability and actual host state.
+   Changing the Web image does not necessarily fix these failures. Do not guess a mutable tag or
+   perform a tutorial/database rollback, delete an archive, clear a pending marker or bypass guards.
+4. If immutable image recovery is appropriate, an authorized **root** operator must first verify
+   the installed Backend24 receiver/adoption state and reconcile actual container `.Image`,
+   `images.env`, `/opt/kira/releases/web/activation` and the retained content-addressed
+   `/opt/kira/releases/web/<archive-sha256>.tar.gz`. Select the known-public-good recorded tuple,
+   not merely whichever entry is named `previous`. Only then, under that separate authority,
+   the candidate normal-state command is:
+
+   ```sh
+   # Exact recorded immutable ID: sha256: followed by its full 64-hex image ID, never a tag.
+   sudo /usr/local/sbin/kira-deploy activate web "$KNOWN_PUBLIC_GOOD_IMAGE_ID"
+   ```
+
+   This is **not** available through the restricted Web SSH gateway. It uses ordinary
+   unhealthy/unowned/drift/missing-archive/pending guards and may refuse recovery; abnormal state
+   requires separately authorized reconciliation. No new gateway command/privilege is supplied here.
+5. Verify actual image, health and persisted records after authorized recovery. Run the **same
+   public verifier**, with the recovered full source SHA and that build's association inputs, and
+   retain its passing receipt before lifting the hold or resuming approval/pruning. A legacy image
+   without the source marker cannot be given an invented passing receipt; handle bootstrap under
+   separate review rather than bypassing this check.
+
+**Unresolved recovery dependency / EXTERNAL VERIFICATION REQUIRED:** Backend24's candidate root
+activation command has command-stub fixture coverage, but its integration/installation and a real
+root restoration after locally successful, publicly failed B are not proved by this Web change.
+An automatic failed-activation restoration exercise is not the same as that explicit root command.
+Retained compatible public-good bytes, installed controls/hold discipline, authorized root access,
+actual on-call receipt, public probes and a real recovery/public-reverification drill are release
+gates still requiring external evidence. Documentation or a green local fixture does not discharge
+them, establish automatic rollback, or close the recovery obligation.
+
 ## Image configuration and runtime
 
 The `production` GitHub Environment must define the non-sensitive Actions variable
@@ -148,11 +276,13 @@ certificate → SHA-256 certificate fingerprint**. Do not use the upload-key cer
 deployment workflow always enables production validation and fails before deployment when the
 variable is absent or malformed.
 
-Build the immutable image with the production Android association values and public API origin:
+Build the immutable image with the exact full lowercase source SHA, production Android association
+values and public API origin (the protected workflow supplies the SHA rather than accepting input):
 
 ```sh
 docker build \
   --build-arg KIRA_WEB_PRODUCTION=true \
+  --build-arg KIRA_WEB_SOURCE_REVISION="$GIT_SHA" \
   --build-arg ANDROID_APP_SHA256_CERT_FINGERPRINT="$ANDROID_APP_SHA256_CERT_FINGERPRINT" \
   --build-arg NEXT_PUBLIC_KIRA_API_URL=https://api.kiramanga.me \
   -t kira-web:$GIT_SHA .
@@ -174,13 +304,14 @@ and public tutorial/media parity checks pass. Then deploy web, retain the existi
 hosts unchanged, and verify:
 
 ```sh
-npm run verify:production -- https://kiramanga.me
-curl -I https://kiramanga.me/tutorials/
-curl -I https://api.kiramanga.me/api/v1/tutorials
+KIRA_WEB_SOURCE_REVISION="$EXPECTED_FULL_SOURCE_SHA" \
+ANDROID_APP_SHA256_CERT_FINGERPRINT="$ANDROID_APP_SHA256_CERT_FINGERPRINT" \
+npm run verify:production
 ```
 
-Publish a temporary tutorial through Swagger/API, confirm drafts are absent, publish it, and verify a
+In a separately authorized parity exercise, publish a temporary tutorial through Swagger/API, confirm drafts are absent, publish it, and verify a
 new dynamic slug appears in the library and sitemap within about 60 seconds without rebuilding web.
 Also test archive (public 404), rollback, Arabic/dark-light variants, and a brief backend outage after
-warming the cache. Rollback activates the prior web image; the persistent cache may be retained or
-discarded. Database migrations and tutorial revisions are forward-only.
+warming the cache. These mutations are not part of the read-only public gate. Image recovery follows
+the incident procedure and conditional guards above, not a guessed prior tag. Database migrations
+and tutorial revisions are forward-only.

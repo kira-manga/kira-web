@@ -49,7 +49,7 @@ export default async function TutorialsPage() {
         </div>
       </section>
 
-      <div className={`${styles.libraryShell} shell`}>
+      <div className={`${styles.libraryShell} shell`} data-kira-tutorials={available ? 'available' : 'unavailable'}>
         {available ? (
           <TutorialLibrary tutorials={tutorialResult.data} categories={categoryResult.data} />
         ) : (
