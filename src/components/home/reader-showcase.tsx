@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { LocalizedText } from '@/components/ui/localized-text';
-import { AppScreen } from '@/components/ui/preferences';
+import { AppScreen, useKiraPreferences } from '@/components/ui/preferences';
 import { homeCopy } from '@/content/home';
 import type { AppScreenKey } from '@/content/media';
 
@@ -24,8 +24,11 @@ function getScreenPosition(screen: AppScreenKey, activeScreen: AppScreenKey): Sc
 
 export function ReaderShowcase() {
   const copy = homeCopy.screens;
+  const { preferences } = useKiraPreferences();
   const [activeScreen, setActiveScreen] = useState<AppScreenKey>('discover');
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
+  const isPaused = isHovered || isFocusWithin;
   const activeIndex = screenOrder.indexOf(activeScreen);
   const activeStory = copy.stories[activeScreen];
 
@@ -41,12 +44,6 @@ export function ReaderShowcase() {
 
     return () => window.clearTimeout(timer);
   }, [activeScreen, isPaused]);
-
-  const activateScreenFromKeyboard = (event: React.KeyboardEvent<HTMLElement>, screen: AppScreenKey) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
-    setActiveScreen(screen);
-  };
 
   return (
     <section className={styles.screensSection} id="inside-kira" aria-labelledby="screens-title">
@@ -65,18 +62,18 @@ export function ReaderShowcase() {
       <div
         className={`${styles.productWindow} shell`}
         data-paused={isPaused ? '' : undefined}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onFocusCapture={() => setIsPaused(true)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocusCapture={() => setIsFocusWithin(true)}
         onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+          if (!event.currentTarget.contains(event.relatedTarget)) setIsFocusWithin(false);
         }}
       >
         <div className={styles.windowBar}>
           <span className={styles.windowTitle}>{copy.windowTitle}</span>
         </div>
 
-        <div className={styles.screenTabs} aria-label={copy.switcherLabel}>
+        <div className={styles.screenTabs} role="group" aria-label={copy.switcherLabel[preferences.language]}>
           {copy.tabs.map((tab) => (
             <button
               className={activeScreen === tab.key ? styles.activeScreenTab : undefined}
@@ -84,6 +81,7 @@ export function ReaderShowcase() {
               type="button"
               aria-pressed={activeScreen === tab.key}
               onClick={() => setActiveScreen(tab.key)}
+              onFocus={(event) => event.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })}
             >
               <span>{tab.number}</span>
               <LocalizedText en={tab.label.en} ar={tab.label.ar} />
@@ -109,12 +107,7 @@ export function ReaderShowcase() {
                 className={styles.appPanel}
                 data-position={getScreenPosition(screen, activeScreen)}
                 key={screen}
-                role="button"
-                tabIndex={screen === activeScreen ? 0 : -1}
-                aria-label={story.buttonLabel}
-                aria-pressed={screen === activeScreen}
-                onClick={() => setActiveScreen(screen)}
-                onKeyDown={(event) => activateScreenFromKeyboard(event, screen)}
+                aria-hidden={screen !== activeScreen}
               >
                 <div className={styles.appPanelImage}><AppScreen screen={screen} /></div>
                 <figcaption>
