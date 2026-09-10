@@ -98,6 +98,19 @@ svg { display: block; }
 html[data-lang="ar"] .langEn { display: none; }
 html[data-lang="ar"] .langAr { display: inline; }
 
+/* Referenced labels stay in the accessibility tree; only their visual box is clipped. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .liveAppScreen {
   width: 100%;
   height: 100%;
@@ -558,7 +571,11 @@ html[data-lang="ar"] .documentLanguageNotice {
   border-radius: 1.2rem;
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   backdrop-filter: blur(1rem);
+  text-align: start;
 }
+
+/* The localized landmark follows the site language; its English links remain LTR. */
+html[data-lang="ar"] .tableOfContents { direction: rtl; }
 
 .tableOfContents > p {
   margin: 0 0 1rem;
@@ -697,6 +714,8 @@ html[dir="rtl"] .footerBottom a svg,
 html[dir="rtl"] .button svg {
   transform: scaleX(-1);
 }
+
+.documentPage [lang="en"][dir="ltr"] .button svg { transform: none; }
 
 .footerTop {
   min-height: 24rem;

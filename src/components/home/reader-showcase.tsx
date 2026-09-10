@@ -70,7 +70,7 @@ export function ReaderShowcase() {
         }}
       >
         <div className={styles.windowBar}>
-          <span className={styles.windowTitle}>{copy.windowTitle}</span>
+          <span className={styles.windowTitle}>{copy.windowTitle[preferences.language]}</span>
         </div>
 
         <div className={styles.screenTabs} role="group" aria-label={copy.switcherLabel[preferences.language]}>

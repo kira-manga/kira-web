@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useId } from 'react';
 
 import { ArrowIcon, BookIcon, PlayIcon } from '@/components/ui/icons';
 import { LocalizedText } from '@/components/ui/localized-text';
@@ -11,6 +12,7 @@ import styles from './home.module.css';
 
 export function Hero() {
   const copy = homeCopy.hero;
+  const labelId = useId();
 
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
@@ -48,14 +50,20 @@ export function Hero() {
             </Link>
           </div>
 
-          <div className={styles.heroProof} aria-label={copy.proofLabel}>
+          <span className="srOnly" id={`${labelId}-hero-proof`}>
+            <LocalizedText en={copy.proofLabel.en} ar={copy.proofLabel.ar} />
+          </span>
+          <div className={styles.heroProof} role="group" aria-labelledby={`${labelId}-hero-proof`}>
             {copy.proof.map((item, index) => (
               <span key={item.en}><i>{String(index + 1).padStart(2, '0')}</i><LocalizedText en={item.en} ar={item.ar} /></span>
             ))}
           </div>
         </div>
 
-        <div className={styles.productStage} aria-label={copy.previewLabel}>
+        <div className={styles.productStage} role="group" aria-labelledby={`${labelId}-hero-preview`}>
+          <span className="srOnly" id={`${labelId}-hero-preview`}>
+            <LocalizedText en={copy.previewLabel.en} ar={copy.previewLabel.ar} />
+          </span>
           <div className={styles.stageOrbit} aria-hidden="true" />
           <PhoneMockup
             variant="android"

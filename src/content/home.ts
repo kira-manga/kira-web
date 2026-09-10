@@ -11,12 +11,12 @@ export const homeCopy = {
     },
     primaryCta: { en: 'Start with Kira', ar: 'ابدأ مع كيرا' },
     secondaryCta: { en: 'Explore tutorials', ar: 'استكشف الشروحات' },
-    proofLabel: 'Kira product highlights',
+    proofLabel: { en: 'Kira product highlights', ar: 'مزايا كيرا' },
     proof: [
       { en: 'Android & iOS', ar: 'أندرويد وiOS' },
       { en: 'English & Arabic', ar: 'العربية والإنجليزية' },
     ],
-    previewLabel: 'Kira app preview',
+    previewLabel: { en: 'Kira app preview', ar: 'معاينة تطبيق كيرا' },
     devices: {
       android: {
         platform: 'ANDROID',
@@ -81,7 +81,7 @@ export const homeCopy = {
       lead: { en: 'The interface is', ar: 'الواجهة نفسها' },
       accent: { en: 'the advertisement.', ar: 'هي الإعلان.' },
     },
-    windowTitle: 'KIRA / PRODUCT TOUR',
+    windowTitle: { en: 'KIRA / PRODUCT TOUR', ar: 'كيرا / جولة في التطبيق' },
     switcherLabel: { en: 'Choose a Kira screen preview', ar: 'اختر معاينة لشاشة كيرا' },
     tabs: [
       { key: 'discover', number: '01', label: { en: 'Discover', ar: 'اكتشف' } },
