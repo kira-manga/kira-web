@@ -9,7 +9,7 @@ interface PageHeroProps {
 
 export function PageHero({ eyebrow, title, intro, children }: PageHeroProps) {
   return (
-    <section className="pageHero">
+    <section className="pageHero" lang="en" dir="ltr">
       <p className="eyebrow"><span />{eyebrow}</p>
       <h1>{title}</h1>
       <p className="pageIntro">{intro}</p>

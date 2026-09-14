@@ -1,3 +1,5 @@
+import type { LocalizedCountMessages } from '@/content/types';
+
 export const tutorialsPageCopy = {
   metadata: {
     title: 'Tutorials',
@@ -29,10 +31,27 @@ export const tutorialsPageCopy = {
     searchPlaceholder: { en: 'Search tutorials…', ar: 'ابحث في الشروحات…' },
     categoriesLabel: { en: 'Tutorial categories', ar: 'تصنيفات الشروحات' },
     count: {
-      en: { one: 'guide', many: 'guides' },
-      ar: { one: 'شرح', many: 'شروحات' },
-    },
-    steps: { en: 'steps', ar: 'خطوات' },
+      en: { one: '{count} guide', other: '{count} guides' },
+      ar: {
+        zero: 'لا توجد شروحات',
+        one: 'شرح واحد',
+        two: 'شرحان',
+        few: '{count} شروحات',
+        many: '{count} شرحًا',
+        other: '{count} شرح',
+      },
+    } satisfies LocalizedCountMessages,
+    steps: {
+      en: { one: '{count} step', other: '{count} steps' },
+      ar: {
+        zero: 'لا توجد خطوات',
+        one: 'خطوة واحدة',
+        two: 'خطوتان',
+        few: '{count} خطوات',
+        many: '{count} خطوة',
+        other: '{count} خطوة',
+      },
+    } satisfies LocalizedCountMessages,
     openGuide: { en: 'Open guide', ar: 'افتح الشرح' },
     emptyTitle: { en: 'No guide matches that search.', ar: 'لا يوجد شرح يطابق هذا البحث.' },
     emptyDescription: { en: 'Try a shorter phrase or choose All guides.', ar: 'جرّب عبارة أقصر أو اختر «كل الشروحات».' },
@@ -41,21 +60,20 @@ export const tutorialsPageCopy = {
     unavailableDescription: { en: 'The rest of Kira is still available. Please try the guide library again shortly.', ar: 'بقية موقع كيرا ما زالت متاحة. أعد محاولة فتح مكتبة الشروحات بعد قليل.' },
   },
   article: {
-    tutorialLibraryLabel: 'Tutorial library',
+    tutorialLibraryLabel: { en: 'Tutorial library', ar: 'مكتبة الشروحات' },
     allTutorials: { en: 'All tutorials', ar: 'كل الشروحات' },
     quickGuides: { en: 'QUICK GUIDES', ar: 'أدلة سريعة' },
     stillNeedHelp: { en: 'Still need help?', ar: 'ما زلت تحتاج مساعدة؟' },
     openSupport: { en: 'Open support', ar: 'افتح الدعم' },
-    breadcrumbLabel: 'Breadcrumb',
+    breadcrumbLabel: { en: 'Breadcrumb', ar: 'مسار التنقل' },
     tutorials: { en: 'Tutorials', ar: 'الشروحات' },
-    mediaTitle: 'KIRA / GUIDE MEDIA',
-    mediaStatus: 'GUIDE VIEW',
+    mediaTitle: { en: 'KIRA / GUIDE MEDIA', ar: 'كيرا / وسائط الشرح' },
+    mediaStatus: { en: 'GUIDE VIEW', ar: 'عرض الشرح' },
     mediaCaption: { en: 'Kira screen reference for this step', ar: 'مرجع من شاشة كيرا لهذه الخطوة' },
     inThisGuide: { en: 'IN THIS GUIDE', ar: 'في هذا الشرح' },
     stepPrefix: { en: 'STEP', ar: 'الخطوة' },
     tipLabel: { en: 'Good to know', ar: 'معلومة مفيدة' },
     continueLearning: { en: 'CONTINUE LEARNING', ar: 'أكمل التعلّم' },
-    onThisPageLabel: 'On this page',
     readSuffix: { en: 'read', ar: 'قراءة' },
     unavailableTitle: { en: 'This tutorial is temporarily unavailable.', ar: 'هذا الشرح غير متاح مؤقتًا.' },
     unavailableDescription: { en: 'Please try again shortly. No website rebuild is required when the service recovers.', ar: 'أعد المحاولة بعد قليل. سيعود الشرح تلقائيًا عند استعادة الخدمة.' },

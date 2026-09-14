@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
+import { LocalizedText } from '@/components/ui/localized-text';
 import { media } from '@/content/media';
-import { siteConfig } from '@/content/site';
+import { siteConfig, siteCopy } from '@/content/site';
 
 export function KiraMark({ small = false }: { small?: boolean }) {
   const logo = media.brand.logo;
@@ -16,9 +17,10 @@ export function KiraMark({ small = false }: { small?: boolean }) {
 
 export function Brand() {
   return (
-    <Link className="brand" href="/" aria-label={`${siteConfig.name} home`}>
+    <Link className="brand" href="/">
       <KiraMark small />
-      <span className="wordmark">{siteConfig.shortName} <small>{siteConfig.wordmarkSuffix}</small></span>
+      <span className="wordmark" lang="en" dir="ltr">{siteConfig.shortName} <small>{siteConfig.wordmarkSuffix}</small></span>
+      <span className="srOnly"> — <LocalizedText en={siteCopy.header.homeLinkSuffix.en} ar={siteCopy.header.homeLinkSuffix.ar} /></span>
     </Link>
   );
 }

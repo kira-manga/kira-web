@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   alternates: { canonical: '/tutorials' },
 };
 
-export const revalidate = 60;
-
 export default async function TutorialsPage() {
   const copy = tutorialsPageCopy.hero;
   const logo = media.brand.logo;
@@ -51,7 +49,7 @@ export default async function TutorialsPage() {
         </div>
       </section>
 
-      <div className={`${styles.libraryShell} shell`}>
+      <div className={`${styles.libraryShell} shell`} data-kira-tutorials={available ? 'available' : 'unavailable'}>
         {available ? (
           <TutorialLibrary tutorials={tutorialResult.data} categories={categoryResult.data} />
         ) : (

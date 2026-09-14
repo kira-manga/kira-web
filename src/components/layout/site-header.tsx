@@ -1,5 +1,6 @@
 import type { Route } from 'next';
 import Link from 'next/link';
+import { useId } from 'react';
 
 import { Brand } from '@/components/layout/brand';
 import { ArrowIcon, CloseIcon, MenuIcon } from '@/components/ui/icons';
@@ -8,11 +9,19 @@ import { PreferenceControls } from '@/components/ui/preferences';
 import { siteCopy } from '@/content/site';
 
 export function SiteHeader() {
+  const labelId = useId();
+
   return (
     <header className="siteHeader">
-      <nav className="nav shell" aria-label={siteCopy.header.navigationLabel}>
+      <nav className="nav shell" aria-labelledby={`${labelId}-header-navigation`}>
+        <span className="srOnly" id={`${labelId}-header-navigation`}>
+          <LocalizedText en={siteCopy.header.navigationLabel.en} ar={siteCopy.header.navigationLabel.ar} />
+        </span>
         <Brand />
-        <div className="desktopNav" aria-label={siteCopy.header.primaryLinksLabel}>
+        <div className="desktopNav" role="group" aria-labelledby={`${labelId}-primary-links`}>
+          <span className="srOnly" id={`${labelId}-primary-links`}>
+            <LocalizedText en={siteCopy.header.primaryLinksLabel.en} ar={siteCopy.header.primaryLinksLabel.ar} />
+          </span>
           {siteCopy.navigation.map((item) => <Link key={item.href} href={item.href as Route}><LocalizedText en={item.label.en} ar={item.label.ar} /></Link>)}
         </div>
         <div className="headerActions">
@@ -22,7 +31,8 @@ export function SiteHeader() {
           </Link>
         </div>
         <details className="mobileMenu">
-          <summary aria-label={siteCopy.header.menuLabel}>
+          <summary>
+            <span className="srOnly"><LocalizedText en={siteCopy.header.menuLabel.en} ar={siteCopy.header.menuLabel.ar} /></span>
             <span className="menuOpen"><MenuIcon /></span>
             <span className="menuClose"><CloseIcon /></span>
           </summary>

@@ -1,6 +1,14 @@
 import process from 'node:process';
 
 export const production = process.env.KIRA_WEB_PRODUCTION === 'true';
+export const sourceRevision = process.env.KIRA_WEB_SOURCE_REVISION || 'development';
+
+export function validateSourceRevision(required = production) {
+  if (!required && sourceRevision === 'development') return;
+  if (!/^[0-9a-f]{40}$/.test(sourceRevision)) {
+    throw new Error('KIRA_WEB_SOURCE_REVISION must be a full lowercase 40-hex source SHA');
+  }
+}
 
 export const identifiers = {
   '__ANDROID_PACKAGE_NAME__': process.env.ANDROID_PACKAGE_NAME || 'me.manga.kira',
@@ -11,8 +19,8 @@ export const identifiers = {
   '__IOS_BUNDLE_ID__': process.env.IOS_BUNDLE_ID || 'me.manga.kira',
 };
 
-export function validateProductionIdentifiers() {
-  if (!production) return;
+export function validateProductionIdentifiers(required = production) {
+  if (!required) return;
 
   const fingerprint = identifiers.__ANDROID_SHA256_CERT_FINGERPRINT__;
   if (!/^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/i.test(fingerprint)) {

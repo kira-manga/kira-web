@@ -2,7 +2,10 @@ import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { identifiers, production } from './association-config.mjs';
+import { identifiers, production, sourceRevision, validateProductionIdentifiers, validateSourceRevision } from './association-config.mjs';
+
+validateProductionIdentifiers();
+validateSourceRevision();
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.join(root, '.next/standalone/public');
@@ -22,4 +25,7 @@ for (const relativePath of [
   await writeFile(file, contents);
 }
 
-console.log(`Materialized ${production ? 'production' : 'development'} app associations.`);
+// Generated only in the built output; never ship a passing source-tree placeholder.
+await writeFile(path.join(output, 'kira-release.json'), `${JSON.stringify({ sourceRevision })}\n`);
+
+console.log(`Materialized ${production ? 'production' : 'development'} app associations and source marker.`);

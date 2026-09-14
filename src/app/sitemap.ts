@@ -3,8 +3,6 @@ import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/content/site';
 import { getTutorials } from '@/lib/tutorial-api';
 
-export const revalidate = 60;
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const result = await getTutorials();
   const tutorialRoutes = result.status === 'ok' ? result.data.map(({ slug }) => `/tutorials/${slug}`) : [];

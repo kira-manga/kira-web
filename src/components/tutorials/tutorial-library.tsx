@@ -9,6 +9,7 @@ import { LocalizedText } from '@/components/ui/localized-text';
 import { useKiraPreferences } from '@/components/ui/preferences';
 import { tutorialsPageCopy } from '@/content/tutorials';
 import type { Tutorial, TutorialCategory } from '@/lib/tutorial-api';
+import { formatTutorialCount } from '@/lib/tutorial-counts';
 import { TutorialMediaImage } from './tutorial-media-image';
 
 import styles from './tutorials.module.css';
@@ -58,7 +59,7 @@ export function TutorialLibrary({ tutorials, categories }: { tutorials: Tutorial
       </div>
 
       <div className={styles.filterBar}>
-        <div className={styles.filters} aria-label={copy.categoriesLabel[language]}>
+        <div className={styles.filters} role="group" aria-label={copy.categoriesLabel[language]}>
           {['all', ...categories.map((item) => item.slug)].map((filter) => (
             <button
               type="button"
@@ -72,9 +73,7 @@ export function TutorialLibrary({ tutorials, categories }: { tutorials: Tutorial
           ))}
         </div>
         <p aria-live="polite">
-          {language === 'ar'
-            ? `${visibleTutorials.length} ${visibleTutorials.length === 1 ? copy.count.ar.one : copy.count.ar.many}`
-            : `${visibleTutorials.length} ${visibleTutorials.length === 1 ? copy.count.en.one : copy.count.en.many}`}
+          {formatTutorialCount(visibleTutorials.length, language, copy.count)}
         </p>
       </div>
 
@@ -97,7 +96,7 @@ export function TutorialLibrary({ tutorials, categories }: { tutorials: Tutorial
                   <p className={styles.cardSummary}>{tutorial.summary[language]}</p>
                   <div className={styles.cardFooter}>
                     <strong><LocalizedText en={copy.openGuide.en} ar={copy.openGuide.ar} /> <ArrowIcon /></strong>
-                    <small>{tutorial.steps.length} {copy.steps[language]}</small>
+                    <small>{formatTutorialCount(tutorial.steps.length, language, copy.steps)}</small>
                   </div>
                 </div>
               </Link>
