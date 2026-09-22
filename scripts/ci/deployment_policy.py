@@ -16,6 +16,12 @@ import sys
 import time
 
 REPOSITORY = "kira-manga/kira-web"
+MAIN_BYPASS_QUERY = (
+    'query { repository(owner:"kira-manga", name:"kira-web") { databaseId nameWithOwner '
+    'owner { login ... on Organization { databaseId } ... on User { databaseId } } '
+    'ref(qualifiedName:"refs/heads/main") { name branchProtectionRule { id pattern '
+    'bypassPullRequestAllowances(first:1) { totalCount nodes { id } pageInfo { hasNextPage } } } } } }'
+)
 REF = "refs/heads/main"
 DEPLOY_WORKFLOW = ".github/workflows/deploy.yml"
 VERIFY_WORKFLOW = ".github/workflows/verify.yml"
@@ -82,10 +88,10 @@ def complete_list(response, key):
 
 
 class Api:
-    """Fixed host/GET paths, no redirects/proxies, endpoint-confined special token.
+    """Fixed REST GETs/one read-only GraphQL query; endpoint-confined policy token.
 
     Linux/main-thread CLI: SIGALRM bounds header/body drips as well as idle socket
-    timeouts. Each request has 10 seconds; the entire client has 60 seconds/20 GETs.
+    timeouts. No redirects/proxies; 10 seconds per request, 60 seconds/20 requests total.
     """
 
     def __init__(self, read_token, policy_token):
@@ -98,13 +104,20 @@ class Api:
         self.requests = 0
 
     def get(self, path):
+        return self._request(path, graphql=False)
+
+    def main_bypass(self):
+        return self._request("/graphql", graphql=True)
+
+    def _request(self, path, *, graphql):
         static = {"", "/git/ref/heads/main", "/environments/production", BRANCH_POLICIES,
                   "/actions/workflows/verify.yml", PROTECTION}
         dynamic = (r"/actions/workflows/[1-9][0-9]*/runs\?event=push&branch=main&"
                    r"head_sha=[0-9a-f]{40}&per_page=100&page=1|"
                    r"/actions/runs/[1-9][0-9]*(?:/attempts/[1-9][0-9]*"
                    r"(?:/jobs\?per_page=100&page=1)?)?")
-        need(type(path) is str and (path in static or re.fullmatch(dynamic, path)),
+        need(type(graphql) is bool and type(path) is str
+             and (path == "/graphql" if graphql else path in static or re.fullmatch(dynamic, path)),
              "unsupported metadata endpoint")
         remaining = self.deadline - time.monotonic()
         self.requests += 1
@@ -119,14 +132,21 @@ class Api:
         try:
             connection = http.client.HTTPSConnection(
                 "api.github.com", timeout=min(8, remaining), context=ssl.create_default_context())
-            token = self.policy_token if path == PROTECTION else self.read_token
-            connection.request("GET", "/repos/" + REPOSITORY + path, headers={
+            token = self.policy_token if graphql or path == PROTECTION else self.read_token
+            headers = {
                 "Authorization": "Bearer " + token,
                 "Accept": "application/vnd.github+json",
                 "Accept-Encoding": "identity",
                 "X-GitHub-Api-Version": "2022-11-28",
                 "User-Agent": "kira-web-production-policy",
-            })
+            }
+            if graphql:
+                # Literal query only: no caller-supplied document, variables or alternate target.
+                headers["Content-Type"] = "application/json"
+                connection.request("POST", "/graphql", headers=headers,
+                                   body=canonical({"query": MAIN_BYPASS_QUERY}).encode("utf-8"))
+            else:
+                connection.request("GET", "/repos/" + REPOSITORY + path, headers=headers)
             response = connection.getresponse()
             need(response.status == 200, "GitHub metadata unavailable (non-200 response)")
             need(response.getheader("Content-Type", "").split(";", 1)[0].lower()
@@ -186,7 +206,34 @@ def repository_identity(value):
             "owner_id": integer(owner.get("id"))}
 
 
-def policy_fingerprint(repository, environment, branches, protection):
+def validate_zero_main_bypass(proof, repository):
+    def fields(value, names):
+        value = obj(value)
+        need(set(value) == set(names.split()), "incomplete or unsupported GraphQL policy object")
+        return value
+
+    # A fixed query selects the rule through main itself, not an arbitrary matching rule list.
+    proof = fields(proof, "data")
+    data = fields(proof["data"], "repository")
+    target = fields(data["repository"], "databaseId nameWithOwner owner ref")
+    owner = fields(target["owner"], "databaseId login")
+    need(integer(target["databaseId"]) == integer(repository.get("id"))
+         and target["nameWithOwner"] == REPOSITORY
+         and integer(owner["databaseId"]) == integer(repository.get("owner_id"))
+         and owner["login"] == "kira-manga", "wrong GraphQL policy repository or owner")
+    ref = fields(target["ref"], "name branchProtectionRule")
+    need(ref["name"] == "main", "wrong GraphQL policy ref")
+    rule = fields(ref["branchProtectionRule"], "id pattern bypassPullRequestAllowances")
+    need(type(rule["id"]) is str and 0 < len(rule["id"]) <= 256 and rule["pattern"] == "main",
+         "missing or non-exact main-selected protection rule")
+    allowances = fields(rule["bypassPullRequestAllowances"], "totalCount nodes pageInfo")
+    page = fields(allowances["pageInfo"], "hasNextPage")
+    need(type(allowances["totalCount"]) is int and allowances["totalCount"] == 0
+         and type(allowances["nodes"]) is list and allowances["nodes"] == []
+         and page["hasNextPage"] is False, "explicit complete zero bypass proof required")
+
+
+def policy_fingerprint(repository, environment, branches, protection, *, bypass_proof=None):
     environment, protection = obj(environment), obj(protection)
     need(environment.get("name") == "production" and environment.get("can_admins_bypass") is False,
          "production approval is missing or bypassable")
@@ -239,9 +286,14 @@ def policy_fingerprint(repository, environment, branches, protection):
     reviews = obj(protection.get("required_pull_request_reviews"))
     count = integer(reviews.get("required_approving_review_count"))
     need(count <= 6 and reviews.get("dismiss_stale_reviews") is True
-         and reviews.get("require_last_push_approval") is True
-         and reviews.get("bypass_pull_request_allowances") == {"users": [], "teams": [], "apps": []},
+         and reviews.get("require_last_push_approval") is True,
          "enforcing source/workflow PR review required")
+    if "bypass_pull_request_allowances" in reviews:
+        need(bypass_proof is None
+             and reviews["bypass_pull_request_allowances"] == {"users": [], "teams": [], "apps": []},
+             "source review bypass is present or malformed")
+    else:
+        validate_zero_main_bypass(bypass_proof, repository)
     checks = obj(protection.get("required_status_checks"))
     required = checks.get("checks")
     need(checks.get("strict") is True and checks.get("contexts") == ["web-verify"]
@@ -268,8 +320,12 @@ def read_policy(api, ctx):
          and repository.get("fork") is False and repository.get("archived") is False
          and repository.get("disabled") is False and repository.get("default_branch") == "main",
          "repository policy mismatch")
-    fingerprint = policy_fingerprint(identity, api.get("/environments/production"),
-                                     api.get(BRANCH_POLICIES), api.get(PROTECTION))
+    environment = api.get("/environments/production")
+    branches = api.get(BRANCH_POLICIES)
+    protection = obj(api.get(PROTECTION))
+    reviews = obj(protection.get("required_pull_request_reviews"))
+    bypass_proof = api.main_bypass() if "bypass_pull_request_allowances" not in reviews else None
+    fingerprint = policy_fingerprint(identity, environment, branches, protection, bypass_proof=bypass_proof)
     return identity, fingerprint
 
 

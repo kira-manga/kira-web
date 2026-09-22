@@ -67,6 +67,22 @@ def fixtures():
             JOBS_PATH: {"total_count": 1, "jobs": [job]}}
 
 
+def zero_bypass_proof():
+    return {"data": {"repository": {
+        "databaseId": 11, "nameWithOwner": gate.REPOSITORY,
+        "owner": {"databaseId": 12, "login": "kira-manga"},
+        "ref": {"name": "main", "branchProtectionRule": {
+            "id": "main-rule-fixture", "pattern": "main", "bypassPullRequestAllowances": {
+                "totalCount": 0, "nodes": [], "pageInfo": {"hasNextPage": False}}}}}}}
+
+
+def absent_bypass_routes():
+    routes = fixtures()
+    del routes[gate.PROTECTION]["required_pull_request_reviews"]["bypass_pull_request_allowances"]
+    routes["/graphql"] = zero_bypass_proof()
+    return routes
+
+
 class FakeApi:
     def __init__(self, routes=None, sequence=None):
         self.routes = copy.deepcopy(fixtures() if routes is None else routes)
@@ -84,6 +100,9 @@ class FakeApi:
         if isinstance(result, Exception):
             raise result
         return copy.deepcopy(result)
+
+    def main_bypass(self):
+        return self.get("/graphql")
 
 
 def replace(routes, endpoint, fields, value):
@@ -130,6 +149,87 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(self.fingerprint(routes), expected)
         user["id"] += 1
         self.assertNotEqual(self.fingerprint(routes), expected)
+
+    def test_absent_rest_bypass_requires_explicit_zero_without_rewriting_metadata(self):
+        ordinary = FakeApi()
+        expected = gate.read_policy(ordinary, gate.context(invocation()))[1]
+        self.assertNotIn("/graphql", ordinary.calls)
+        api = FakeApi(absent_bypass_routes())
+        before = copy.deepcopy(api.routes)
+        self.assertEqual(gate.read_policy(api, gate.context(invocation()))[1], expected)
+        self.assertEqual(api.calls.count("/graphql"), 1)
+        self.assertEqual(api.routes, before)
+        self.assertNotIn("bypass_pull_request_allowances", api.routes[gate.PROTECTION]["required_pull_request_reviews"])
+        # The corroboration is only for absent REST, not a second policy source for present fields.
+        routes = fixtures()
+        with self.assertRaises(gate.Refused):
+            gate.policy_fingerprint(gate.repository_identity(routes[""]), routes["/environments/production"],
+                                    routes[gate.BRANCH_POLICIES], routes[gate.PROTECTION],
+                                    bypass_proof=zero_bypass_proof())
+
+    def test_present_malformed_or_nonempty_rest_bypass_never_queries_graphql(self):
+        cases = [None, [], {}, {"users": [], "teams": []},
+                 {"users": [], "teams": [], "apps": [], "extra": []}]
+        for key in ("users", "teams", "apps"):
+            cases += [{"users": [], "teams": [], "apps": [], key: value} for value in (None, False, [{"id": 1}])]
+        for value in cases:
+            routes = absent_bypass_routes()
+            routes[gate.PROTECTION]["required_pull_request_reviews"]["bypass_pull_request_allowances"] = value
+            api = FakeApi(routes)
+            with self.subTest(value=value), self.assertRaises(gate.Refused):
+                gate.read_policy(api, gate.context(invocation()))
+            self.assertNotIn("/graphql", api.calls)
+
+    def test_graphql_bypass_identity_schema_and_completeness_must_be_explicit(self):
+        for value in (None, [], {}, {"data": None}, {**zero_bypass_proof(), "errors": []},
+                      {**zero_bypass_proof(), "extensions": {}}, gate.Refused("unavailable fixture endpoint")):
+            routes = absent_bypass_routes()
+            routes["/graphql"] = value
+            with self.subTest(proof=str(value)[:70]), self.assertRaises(gate.Refused):
+                self.fingerprint(routes)
+        routes = absent_bypass_routes()
+        del routes["/graphql"]
+        with self.assertRaises(gate.Refused):
+            self.fingerprint(routes)
+
+        repo = ("data", "repository")
+        owner = repo + ("owner",)
+        ref = repo + ("ref",)
+        rule = ref + ("branchProtectionRule",)
+        allowances = rule + ("bypassPullRequestAllowances",)
+        cases = [(repo, None), (repo + ("databaseId",), 99), (repo + ("databaseId",), True),
+                 (repo + ("nameWithOwner",), "kira-manga/kira-admin"), (owner, None),
+                 (owner + ("databaseId",), 99), (owner + ("databaseId",), True),
+                 (owner + ("login",), "other-owner"), (ref, None), (ref + ("name",), "other"),
+                 (rule, None), (rule + ("id",), ""), (rule + ("id",), True),
+                 (rule + ("id",), "x" * 257), (rule + ("pattern",), "main*"),
+                 (rule + ("pattern",), "refs/heads/main"), (allowances, None),
+                 (allowances + ("nodes",), [{"id": "unexpected-bypass"}]),
+                 (allowances + ("nodes",), {}), (allowances + ("pageInfo",), None)]
+        cases += [(allowances + ("totalCount",), value) for value in (None, True, False, 0.0, "0", -1, 1)]
+        cases += [(allowances + ("pageInfo", "hasNextPage"), value) for value in (None, 0, True, "false")]
+        for fields, value in cases:
+            routes = absent_bypass_routes()
+            replace(routes, "/graphql", fields, value)
+            with self.subTest(fields=fields, value=value), self.assertRaises(gate.Refused):
+                self.fingerprint(routes)
+        # Each selected object is closed: no omitted key, hidden alias or partial data acceptance.
+        for path in ((), ("data",), repo, owner, ref, rule, allowances, allowances + ("pageInfo",)):
+            original = zero_bypass_proof()
+            node = original
+            for key in path:
+                node = node[key]
+            for missing in (*node, None):
+                routes = absent_bypass_routes()
+                changed = routes["/graphql"]
+                for key in path:
+                    changed = changed[key]
+                if missing is None:
+                    changed["unexpected"] = {}
+                else:
+                    del changed[missing]
+                with self.subTest(path=path, missing=missing), self.assertRaises(gate.Refused):
+                    self.fingerprint(routes)
 
     def test_missing_bypassable_and_unsupported_controls_refuse(self):
         env, prot, refs = "/environments/production", gate.PROTECTION, gate.BRANCH_POLICIES
@@ -344,9 +444,37 @@ class SourceTests(unittest.TestCase):
         routes[gate.PROTECTION]["enforce_admins"]["enabled"] = False
         self.assertEqual(invoke("drift", env, FakeApi(routes))[0], 1)
 
+    def test_absent_bypass_is_reread_for_preflight_recheck_and_drift(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "outputs"
+            env = {**invocation(), "GITHUB_OUTPUT": str(output)}
+            preflight = FakeApi(absent_bypass_routes())
+            self.assertEqual(invoke("preflight", env, preflight)[0], 0)
+            self.assertEqual(preflight.calls.count("/graphql"), 1)
+            initial = output.read_text()
+            env["WEB_DEPLOYMENT_SNAPSHOT"] = initial.removeprefix("snapshot=").strip()
+            for _phase in ("after-approval", "after-build"):
+                recheck = FakeApi(absent_bypass_routes())
+                self.assertEqual(invoke("recheck", env, recheck)[0], 0)
+                self.assertEqual(recheck.calls.count("/graphql"), 1)
+                self.assertNotIn(RUNS_PATH, recheck.calls)
+            refused = absent_bypass_routes()
+            refused["/graphql"] = {"errors": [{"message": "never-log-policy-fixture"}]}
+            result, diagnostic = invoke("recheck", env, FakeApi(refused))
+            self.assertEqual(result, 1)
+            self.assertNotIn("fixture", diagnostic)
+            self.assertEqual(output.read_text(), initial)
+            env.update({"GITHUB_EVENT_NAME": "schedule",
+                        "GITHUB_WORKFLOW_REF": gate.REPOSITORY + "/" + gate.DRIFT_WORKFLOW + "@" + gate.REF})
+            drift = FakeApi(absent_bypass_routes())
+            self.assertEqual(invoke("drift", env, drift)[0], 0)
+            self.assertEqual(drift.calls.count("/graphql"), 1)
+            self.assertFalse(any("actions/" in path for path in drift.calls))
+            self.assertEqual(invoke("drift", env, FakeApi(refused))[0], 1)
+
 
 class ApiTests(unittest.TestCase):
-    def request(self, path="/environments/production", raw=b"{}", status=200, headers=None, failure=None):
+    def request(self, path="/environments/production", raw=b"{}", status=200, headers=None, failure=None, graphql=False):
         response = mock.Mock(status=status)
         values = {"Content-Type": "application/json; charset=utf-8", **(headers or {})}
         response.getheader.side_effect = lambda key, default=None: values.get(key, default)
@@ -356,7 +484,8 @@ class ApiTests(unittest.TestCase):
         connection.request.side_effect = failure
         with mock.patch.object(gate.http.client, "HTTPSConnection", return_value=connection) as constructor:
             try:
-                result = gate.Api("ordinary-fixture", "policy-fixture").get(path)
+                api = gate.Api("ordinary-fixture", "policy-fixture")
+                result = api.main_bypass() if graphql else api.get(path)
             finally:
                 # Including redirect/error responses: no second host/request or auth forwarding.
                 constructor.assert_called_once()
@@ -378,6 +507,27 @@ class ApiTests(unittest.TestCase):
             response.read.assert_called_once_with(gate.MAX_BODY + 1)
             connection.close.assert_called_once()
 
+    def test_graphql_is_one_fixed_read_only_query_with_policy_token_and_existing_limits(self):
+        query = (
+            'query { repository(owner:"kira-manga", name:"kira-web") { databaseId nameWithOwner '
+            'owner { login ... on Organization { databaseId } ... on User { databaseId } } '
+            'ref(qualifiedName:"refs/heads/main") { name branchProtectionRule { id pattern '
+            'bypassPullRequestAllowances(first:1) { totalCount nodes { id } pageInfo { hasNextPage } } } } } }'
+        )
+        result, constructor, connection, response = self.request(graphql=True)
+        self.assertEqual(result, {})
+        self.assertEqual(constructor.call_args.args, ("api.github.com",))
+        self.assertLessEqual(constructor.call_args.kwargs["timeout"], 8)
+        args = connection.request.call_args
+        self.assertEqual(args.args, ("POST", "/graphql"))
+        self.assertEqual(json.loads(args.kwargs["body"]), {"query": query})
+        self.assertEqual(args.kwargs["headers"]["Authorization"], "Bearer policy-fixture")
+        self.assertEqual(args.kwargs["headers"]["Content-Type"], "application/json")
+        self.assertEqual(args.kwargs["headers"]["X-GitHub-Api-Version"], "2022-11-28")
+        self.assertEqual(args.kwargs["headers"]["Accept-Encoding"], "identity")
+        self.assertNotIn("ordinary-fixture", repr(args))
+        response.read.assert_called_once_with(gate.MAX_BODY + 1)
+
     def test_transport_and_malformed_or_incomplete_replies_fail_closed(self):
         cases = [{"status": status, "headers": {"Location": "https://evil.invalid/"}} for status in (301, 302, 401, 403, 404, 429, 500)]
         cases += [{"headers": headers} for headers in (
@@ -386,39 +536,42 @@ class ApiTests(unittest.TestCase):
             {"Content-Length": str(gate.MAX_BODY + 1)}, {"Content-Length": "invalid"})]
         cases += [{"raw": raw} for raw in (b"null", b"[]", b"bad", b"\xff", b'{"a":1,"a":2}', b'{"a":NaN}', b"x" * (gate.MAX_BODY + 1))]
         cases += [{"failure": TimeoutError("do-not-log-policy-fixture")}]
-        for case in cases:
-            with self.subTest(case={k: str(v)[:50] for k, v in case.items()}), self.assertRaises(gate.Refused) as failure:
-                self.request(**case)
-            self.assertNotIn("fixture", str(failure.exception))
+        for graphql in (False, True):
+            for case in cases:
+                with self.subTest(graphql=graphql, case={k: str(v)[:50] for k, v in case.items()}), self.assertRaises(gate.Refused) as failure:
+                    self.request(**case, graphql=graphql)
+                self.assertNotIn("fixture", str(failure.exception))
 
     def test_missing_authority_unknown_paths_and_budgets_deny_before_connect(self):
         for tokens in ((None, "policy"), ("ordinary", None), ("", "policy"), ("ordinary", "token\nvalue")):
             with self.subTest(tokens=tokens), self.assertRaises(gate.Refused):
                 gate.Api(*tokens)
-        for path in ("https://evil.invalid/", "//evil.invalid", "/../secrets", "/branches/main/protection?other=1"):
+        for path in ("https://evil.invalid/", "//evil.invalid", "/../secrets", "/branches/main/protection?other=1", "/graphql"):
             with self.subTest(path=path), mock.patch.object(gate.http.client, "HTTPSConnection") as constructor:
                 with self.assertRaises(gate.Refused):
                     gate.Api("read", "policy").get(path)
                 constructor.assert_not_called()
-        for field, value in (("deadline", 0), ("requests", 20)):
-            api = gate.Api("read", "policy")
-            setattr(api, field, value)
-            with mock.patch.object(gate.http.client, "HTTPSConnection") as constructor, self.assertRaises(gate.Refused):
-                api.get("")
-            constructor.assert_not_called()
+        for graphql in (False, True):
+            for field, value in (("deadline", 0), ("requests", 20)):
+                api = gate.Api("read", "policy")
+                setattr(api, field, value)
+                with mock.patch.object(gate.http.client, "HTTPSConnection") as constructor, self.assertRaises(gate.Refused):
+                    api.main_bypass() if graphql else api.get("")
+                constructor.assert_not_called()
 
     def test_absolute_request_deadline_is_armed_and_restored(self):
         # Invoke the installed deadline handler rather than sleeping or opening a socket.
-        with mock.patch.object(gate.signal, "signal", return_value=signal.SIG_DFL) as handler, \
-                mock.patch.object(gate.signal, "setitimer") as timer:
-            def drip(*_args, **_kwargs):
-                handler.call_args_list[0].args[1](signal.SIGALRM, None)
-            with self.assertRaisesRegex(gate.Refused, "deadline"):
-                self.request(failure=drip)
-            self.assertGreater(timer.call_args_list[0].args[1], 0)
-            self.assertLessEqual(timer.call_args_list[0].args[1], 10)
-            self.assertEqual(timer.call_args_list[-1].args, (signal.ITIMER_REAL, 0))
-            self.assertEqual(handler.call_args_list[-1].args, (signal.SIGALRM, signal.SIG_DFL))
+        for graphql in (False, True):
+            with mock.patch.object(gate.signal, "signal", return_value=signal.SIG_DFL) as handler, \
+                    mock.patch.object(gate.signal, "setitimer") as timer:
+                def drip(*_args, **_kwargs):
+                    handler.call_args_list[0].args[1](signal.SIGALRM, None)
+                with self.assertRaisesRegex(gate.Refused, "deadline"):
+                    self.request(failure=drip, graphql=graphql)
+                self.assertGreater(timer.call_args_list[0].args[1], 0)
+                self.assertLessEqual(timer.call_args_list[0].args[1], 10)
+                self.assertEqual(timer.call_args_list[-1].args, (signal.ITIMER_REAL, 0))
+                self.assertEqual(handler.call_args_list[-1].args, (signal.SIGALRM, signal.SIG_DFL))
 
 
 class WorkflowTests(unittest.TestCase):

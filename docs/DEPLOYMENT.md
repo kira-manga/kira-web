@@ -57,6 +57,15 @@ Policy fingerprints cover enforced values and stable repository/environment/ref/
 not avatars or unrelated display metadata. A policy snapshot cannot prove uninterrupted
 historical protection and does not make approval/revocation/transfer atomic.
 
+GitHub may omit the optional empty REST `bypass_pull_request_allowances` field. Omission alone
+never means zero bypass. Only for an absent key, one fixed read-only GraphQL query selects this
+repository's `refs/heads/main` and its exact `main` protection rule. A closed response must match
+the context-bound immutable repository/owner IDs and names, identify that selected rule, and
+explicitly report integer `totalCount:0`, `nodes:[]`, and `hasNextPage:false`. Errors, partial or
+incomplete data, extra aliases, foreign identity or unsupported rules deny. Present null, malformed
+or nonempty REST allowances never fall back. The raw REST object is not normalized or rewritten;
+corroborated zero bypass has the same enforced-policy fingerprint as explicit empty REST lists.
+
 ### Read authority and production-only SSH binding
 
 Provision repository Actions secret **`WEB_PRODUCTION_POLICY_READ_TOKEN`** as a single-repository,
@@ -66,14 +75,19 @@ access; a broad classic `repo` PAT is not an acceptable fallback. Full classic b
 GET needs this capability—`GITHUB_TOKEN` has no Administration workflow permission.
 
 Only policy-check steps receive that token, and the client sends it **only** to
-`GET /repos/kira-manga/kira-web/branches/main/protection`. Ordinary `GITHUB_TOKEN` with
+`GET /repos/kira-manga/kira-web/branches/main/protection` and, when that REST field is absent,
+the literal read-only query at `POST https://api.github.com/graphql`. There is no caller-supplied
+query/ref/repository, mutation, ordinary-token fallback or additional permission. Verify that
+the same single-repository read-only credential can read the selected rule's GraphQL metadata;
+inaccessibility denies rather than broadening the token. Ordinary `GITHUB_TOKEN` with
 contents/actions/deployments read handles repository, main ref, workflow/run/attempt/jobs and
 supported environment/ref-policy reads (the drift workflow needs no actions permission).
 Verify actual endpoint capability under the workflow's identity; an owner's successful CLI
 request is not proof. Missing scope, expiry, 403/404/rate limits or other API failure denies,
 with no write-scope or alternate-token retry. The client is fixed to HTTPS `api.github.com`,
-API version `2022-11-28`, no redirects/proxies, at most 20 GETs/60 seconds, 10 seconds per request,
-2 MiB per response, and complete single-page listings of at most 100 entries. Candidate run and
+API version `2022-11-28`, no redirects/proxies, at most 20 metadata requests/60 seconds (including
+the optional single GraphQL request per policy read), 10 seconds per request, 2 MiB per response,
+and complete single-page REST listings of at most 100 entries. Candidate run and
 job listings must each contain exactly one entry for this fixed single-job workflow.
 
 Provision **new** secrets only on the protected **production environment**:
